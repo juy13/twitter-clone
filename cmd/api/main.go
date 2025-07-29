@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"twitter-clone/internal/config"
 	"twitter-clone/internal/domain/database"
-	"twitter-clone/internal/domain/twitter"
 	"twitter-clone/internal/server"
 
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"twitter-clone/internal/app"
 
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
@@ -50,10 +51,9 @@ func main() {
 
 func runServer(cCtx *cli.Context) error {
 	var (
-		err            error
-		configYaml     *config.YamlConfig
-		database       database.DatabaseI
-		tweeterService twitter.TwitterService
+		err        error
+		configYaml *config.YamlConfig
+		database   database.DatabaseI // mocked
 	)
 
 	signalCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -64,7 +64,8 @@ func runServer(cCtx *cli.Context) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	server := server.NewServerV1(tweeterService, database, configYaml) // MOCKED
+	twitterService := app.NewTweeterService()
+	server := server.NewServerV1(twitterService, database, configYaml) // MOCKED
 
 	go func() {
 		log.Info().Msgf("Starting data server: %s \n", server.Info())

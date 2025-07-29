@@ -22,6 +22,7 @@ type API struct {
 
 type Database struct {
 	Path     string `yaml:"path,omitempty"`
+	User     string `yaml:"user,omitempty"`
 	Port     string `yaml:"port,omitempty"`
 	Host     string `yaml:"host,omitempty"`
 	Name     string `yaml:"name,omitempty"`
@@ -86,4 +87,8 @@ func (c *YamlConfig) DatabaseName() string {
 
 func (c *YamlConfig) DatabasePassword() string {
 	return c.Database.Password
+}
+
+func (c *YamlConfig) DatabaseUser() string {
+	return c.Database.User
 }

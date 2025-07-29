@@ -16,4 +16,5 @@ type DatabaseConfig interface {
 	DatabasePassword() string
 	DatabaseHost() string
 	DatabaseName() string
+	DatabaseUser() string
 }

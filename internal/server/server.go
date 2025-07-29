@@ -14,13 +14,13 @@ import (
 
 type ServerV1 struct {
 	db             database.DatabaseI
-	tweeterService twitter.TwitterService
+	tweeterService twitter.TwitterServiceI
 	server         *http.Server
 
 	info string
 }
 
-func NewServerV1(service twitter.TwitterService, database database.DatabaseI, config config.APIConfig) *ServerV1 {
+func NewServerV1(service twitter.TwitterServiceI, database database.DatabaseI, config config.APIConfig) *ServerV1 {
 	muxServer := NewMuxServer(config)
 	server := &ServerV1{
 		db:             database,
@@ -53,13 +53,16 @@ func (s *ServerV1) Stop(ctx context.Context) error {
 }
 
 func (s *ServerV1) returnTweets(w http.ResponseWriter, r *http.Request) {
-	s.tweeterService.GetTweet(0)
+	ctx := r.Context()
+	s.tweeterService.GetTweet(ctx, 0)
 }
 
 func (s *ServerV1) newTweet(w http.ResponseWriter, r *http.Request) {
-	s.tweeterService.NewTweet(twitter.Tweet{})
+	ctx := r.Context()
+	s.tweeterService.NewTweet(ctx, twitter.Tweet{})
 }
 
 func (s *ServerV1) getTweet(w http.ResponseWriter, r *http.Request) {
-	s.tweeterService.GetUsersTweets(0)
+	ctx := r.Context()
+	s.tweeterService.GetUsersTweets(ctx, 0)
 }
