@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"twitter-clone/internal/config"
-	"twitter-clone/internal/domain/database"
 	"twitter-clone/internal/server"
 
 	"net/http"
@@ -13,6 +12,10 @@ import (
 	"syscall"
 
 	"twitter-clone/internal/app"
+
+	redis_cache "twitter-clone/internal/cache"
+
+	postgres_db "twitter-clone/internal/database/postgres"
 
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
@@ -53,7 +56,7 @@ func runServer(cCtx *cli.Context) error {
 	var (
 		err        error
 		configYaml *config.YamlConfig
-		database   database.DatabaseI // mocked
+		database   *postgres_db.PostgresDB
 	)
 
 	signalCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -64,8 +67,12 @@ func runServer(cCtx *cli.Context) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	twitterService := app.NewTweeterService()
-	server := server.NewServerV1(twitterService, database, configYaml) // MOCKED
+	if database, err = postgres_db.NewPostgresDB(configYaml); err != nil {
+		return fmt.Errorf("failed to connect to database: %w", err)
+	}
+	cache := redis_cache.NewRedisCache(configYaml)
+	twitterService := app.NewTweeterService(database, cache)
+	server := server.NewServerV1(twitterService, database, configYaml)
 
 	go func() {
 		log.Info().Msgf("Starting data server: %s \n", server.Info())

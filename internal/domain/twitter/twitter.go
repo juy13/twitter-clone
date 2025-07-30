@@ -9,11 +9,20 @@ type User struct {
 	CreatedAt   time.Time `json:"created_at"`
 }
 
+// CREATE TABLE tweets (
+//
+//	id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+//	user_id BIGINT NOT NULL,
+//	content TEXT NOT NULL,
+//	created_at TIMESTAMP CURRENT_TIMESTAMP,
+//	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+//
+// );
 type Tweet struct {
-	ID        int64     `json:"id"`
-	UserID    int64     `json:"user_id"`
-	Content   string    `json:"content"`
-	CreatedAt time.Time `json:"created_at"`
+	ID        int64     `json:"id" db:"id"`
+	UserID    int64     `json:"user_id" db:"user_id"`
+	Content   string    `json:"content" db:"content"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
 
 type Follow struct {

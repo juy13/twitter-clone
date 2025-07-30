@@ -33,26 +33,28 @@ func NewPostgresDB(config config.DatabaseConfig) (*PostgresDB, error) {
 	return &PostgresDB{db: db}, nil
 }
 
-func (p *PostgresDB) NewTweet(ctx context.Context, tweet twitter.Tweet) error {
+func (p *PostgresDB) NewTweet(ctx context.Context, tweet twitter.Tweet) (int64, error) {
 	query := `
         INSERT INTO tweets (user_id, content)
         VALUES (:user_id, :content)
-    `
-	_, err := p.db.NamedExecContext(ctx, query, tweet)
+        RETURNING id
+    ` // https://stackoverflow.com/questions/19167349/postgresql-insert-from-select-returning-id
+	var tweetID int64
+	err := p.db.QueryRowxContext(ctx, query, tweet).Scan(&tweetID)
 	if err != nil {
-		return fmt.Errorf("failed to insert tweet: %w", err)
+		return 0, fmt.Errorf("failed to insert tweet: %w", err)
 	}
-	return nil
+	return tweetID, nil
 }
 
-func (p *PostgresDB) GetTweet(ctx context.Context, id int64) (twitter.Tweet, error) {
+func (p *PostgresDB) GetTweet(ctx context.Context, tweetID int64) (twitter.Tweet, error) {
 	var tweet twitter.Tweet
 	query := `
         SELECT id, user_id, content, created_at
         FROM tweets
         WHERE id = $1
     `
-	err := p.db.GetContext(ctx, &tweet, query, id)
+	err := p.db.GetContext(ctx, &tweet, query, tweetID)
 	if err != nil {
 		return twitter.Tweet{}, fmt.Errorf("failed to get tweet: %w", err)
 	}

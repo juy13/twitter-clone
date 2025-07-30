@@ -3,6 +3,7 @@ package config
 type Config interface {
 	APIConfig
 	DatabaseConfig
+	CacheConfig
 }
 
 type APIConfig interface {
@@ -17,4 +18,13 @@ type DatabaseConfig interface {
 	DatabaseHost() string
 	DatabaseName() string
 	DatabaseUser() string
+}
+
+type CacheConfig interface {
+	CacheAddress() string
+	CachePassword() string
+	CacheDB() int
+	MaxTweets2Keep() int
+	TweetExpireTimeMinutes() int
+	UserFeedExpireTimeMinutes() int
 }

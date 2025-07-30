@@ -13,6 +13,9 @@ type YamlConfig struct {
 
 	// database
 	Database Database `yaml:"database"`
+
+	// cache
+	Cache CacheConfig `yaml:"cache"`
 }
 
 type API struct {
@@ -27,6 +30,15 @@ type Database struct {
 	Host     string `yaml:"host,omitempty"`
 	Name     string `yaml:"name,omitempty"`
 	Password string `yaml:"password,omitempty"`
+}
+
+type CacheConfig struct {
+	Address                   string `yaml:"address"`
+	Password                  string `yaml:"password"`
+	DB                        int    `yaml:"db"`
+	MaxTweets2Keep            int    `yaml:"max_tweets_to_keep"`
+	TweetExpireTimeMinutes    int    `yaml:"tweet_expire_time_minutes"`
+	UserFeedExpireTimeMinutes int    `yaml:"user_feed_expire_time_minutes"`
 }
 
 func NewYamlConfig(configFilePath string) (*YamlConfig, error) {
@@ -91,4 +103,29 @@ func (c *YamlConfig) DatabasePassword() string {
 
 func (c *YamlConfig) DatabaseUser() string {
 	return c.Database.User
+}
+
+// /////////////////////////////////
+//
+//	Cache Config
+//
+// /////////////////////////////////
+
+func (c *YamlConfig) CacheAddress() string {
+	return c.Cache.Address
+}
+func (c *YamlConfig) CachePassword() string {
+	return c.Cache.Password
+}
+func (c *YamlConfig) CacheDB() int {
+	return c.Cache.DB
+}
+func (c *YamlConfig) MaxTweets2Keep() int {
+	return c.Cache.MaxTweets2Keep
+}
+func (c *YamlConfig) TweetExpireTimeMinutes() int {
+	return c.Cache.TweetExpireTimeMinutes
+}
+func (c *YamlConfig) UserFeedExpireTimeMinutes() int {
+	return c.Cache.UserFeedExpireTimeMinutes
 }

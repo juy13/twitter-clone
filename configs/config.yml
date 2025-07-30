@@ -1,3 +1,17 @@
 api:
   port: 9091
   host: 127.0.0.1
+database:
+  database_path: /can/be/used/for/sqlite.db
+  database_port: "5432"
+  database_password: "password"
+  database_host: "localhost"
+  database_name: "testdb"
+  database_user: "postgres"
+cache:
+  cache_address: localhost
+  cache_password: "password"
+  cache_db: 0
+  max_tweets_to_keep: 1000
+  tweet_expire_time_minutes: 1440 # 1 day in minutes
+  user_feed_expire_time_minutes: 300 # just 5 hours 

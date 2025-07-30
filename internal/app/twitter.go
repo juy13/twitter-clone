@@ -2,14 +2,35 @@ package app
 
 import (
 	"context"
+	"fmt"
+	"twitter-clone/internal/domain/cache"
+	"twitter-clone/internal/domain/database"
 	"twitter-clone/internal/domain/twitter"
 )
 
 type TwitterService struct {
-	// fields
+	db    database.DatabaseI
+	cache cache.Cache
+}
+
+func NewTweeterService(db database.DatabaseI, cache cache.Cache) *TwitterService {
+	return &TwitterService{
+		db:    db,
+		cache: cache,
+	}
 }
 
 func (tw *TwitterService) NewTweet(ctx context.Context, tweetData twitter.Tweet) error {
+	var err error
+	if tweetData.ID, err = tw.db.NewTweet(ctx, tweetData); err != nil {
+		return fmt.Errorf("failed to save tweet: %w", err)
+	}
+	if err = tw.cache.PushTweet(ctx, tweetData); err != nil {
+		return fmt.Errorf("failed to push tweet to cache: %w", err)
+	}
+	// 1. Insert in database
+	// 2. Insert in redis
+	// 3. return error
 	panic("not implemented")
 }
 
@@ -26,8 +47,4 @@ func (tw *TwitterService) GetTimeline(ctx context.Context, userId int64) ([]twit
 }
 func (tw *TwitterService) FollowUser(ctx context.Context, follow twitter.Follow) error {
 	panic("not implemented")
-}
-
-func NewTweeterService() *TwitterService {
-	return &TwitterService{}
 }
