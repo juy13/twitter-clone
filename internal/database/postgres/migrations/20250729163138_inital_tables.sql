@@ -16,8 +16,8 @@ CREATE TABLE tweets (
 );
 
 CREATE TABLE follows (
-    follower_id BIGINT NOT NULL,
-    followed_id BIGINT NOT NULL,
+    follower_id BIGINT NOT NULL, -- the one who follows
+    followed_id BIGINT NOT NULL, -- the one being followed
     created_at TIMESTAMP CURRENT_TIMESTAMP,
     PRIMARY KEY (follower_id, followed_id),
     FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,

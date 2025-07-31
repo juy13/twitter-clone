@@ -92,19 +92,6 @@ func (p *PostgresDB) GetTimeline(ctx context.Context, userID int64) ([]twitter.T
 	return tweets, nil
 }
 
-func (p *PostgresDB) FollowUser(ctx context.Context, follow twitter.Follow) error {
-	query := `
-        INSERT INTO follows (follower_id, followed_id)
-        VALUES (:follower_id, :followed_id)
-        ON CONFLICT DO NOTHING
-    `
-	_, err := p.db.NamedExecContext(ctx, query, follow)
-	if err != nil {
-		return fmt.Errorf("failed to follow user: %w", err)
-	}
-	return nil
-}
-
 // type User struct {
 // 	ID          int64     `json:"id"`
 // 	Username    string    `json:"username"`
@@ -124,4 +111,52 @@ func (p *PostgresDB) GetUser(ctx context.Context, id int64) (twitter.User, error
 		return twitter.User{}, fmt.Errorf("failed to get user: %w", err)
 	}
 	return user, nil
+}
+
+// /////////////////////////////////////////
+//
+//	Follow part
+//
+// /////////////////////////////////////////
+func (p *PostgresDB) FollowUser(ctx context.Context, follow twitter.Follow) error {
+	query := `
+        INSERT INTO follows (follower_id, followed_id)
+        VALUES (:follower_id, :followed_id)
+        ON CONFLICT DO NOTHING
+    `
+	_, err := p.db.NamedExecContext(ctx, query, follow)
+	if err != nil {
+		return fmt.Errorf("failed to follow user: %w", err)
+	}
+	return nil
+}
+
+func (p *PostgresDB) Followers(ctx context.Context, userId int64) ([]twitter.User, error) {
+	var users []twitter.User
+	query := `
+        SELECT id, username, display_name, created_at
+        FROM users
+        JOIN follows ON follows.follower_id = users.id
+		WHERE follows.followed_id = $1
+		`
+	err := p.db.GetContext(ctx, &users, query, userId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get followers: %w", err)
+	}
+	return users, nil
+}
+
+func (p *PostgresDB) Following(ctx context.Context, userId int64) ([]twitter.User, error) {
+	var users []twitter.User
+	query := `
+        SELECT id, username, display_name, created_at
+        FROM users
+        JOIN follows ON follows.followed_id = users.id
+		WHERE follows.follower_id = $1
+		`
+	err := p.db.GetContext(ctx, &users, query, userId)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get following: %w", err)
+	}
+	return users, nil
 }

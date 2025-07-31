@@ -38,10 +38,18 @@ func (s *ServerV1) Info() string {
 
 func (s *ServerV1) registerRoutes() {
 	router := s.server.Handler.(*mux.Router)
-	router.HandleFunc("/api/v1/tweets", s.returnTweets).Methods("GET")
+
+	// Tweets
 	router.HandleFunc("/api/v1/tweet", s.newTweet).Methods("POST")
-	router.HandleFunc("/api/v1/tweet_by_user", s.getTweet).Methods("GET")
+	router.HandleFunc("/api/v1/tweets", s.returnTweets).Methods("GET")    // not implemented yet
+	router.HandleFunc("/api/v1/tweet_by_user", s.getTweet).Methods("GET") // not implemented yet
+
+	// Follow
+	// Maybe it's better to unite them,
+	// until we are using same code and use params for logic????
 	router.HandleFunc("/api/v1/follow_user", s.followUser).Methods("GET")
+	router.HandleFunc("/api/v1/followings", s.getFollowings).Methods("GET")
+	router.HandleFunc("/api/v1/followers", s.getFollowers).Methods("GET")
 	// Add more routes
 }
 
@@ -51,11 +59,6 @@ func (s *ServerV1) Start() error {
 
 func (s *ServerV1) Stop(ctx context.Context) error {
 	return s.server.Shutdown(ctx)
-}
-
-func (s *ServerV1) returnTweets(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	s.tweeterService.GetTweet(ctx, 0)
 }
 
 func (s *ServerV1) extractAndCheckUser(ctx context.Context, r *http.Request, userField string) (int64, error) {
@@ -75,6 +78,10 @@ func (s *ServerV1) extractAndCheckUser(ctx context.Context, r *http.Request, use
 	}
 	return user, nil
 }
+
+/////////////////////////////////////////////////////
+// 				TWEET PART
+/////////////////////////////////////////////////////
 
 func (s *ServerV1) newTweet(w http.ResponseWriter, r *http.Request) {
 	var err error
@@ -139,9 +146,81 @@ func (s *ServerV1) newTweet(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(response)
 }
 
+func (s *ServerV1) returnTweets(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	s.tweeterService.GetTweet(ctx, 0)
+}
+
 func (s *ServerV1) getTweet(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	s.tweeterService.GetUsersTweets(ctx, 0)
+}
+
+/////////////////////////////////////////////////////
+// 				FOLLOWING PART
+/////////////////////////////////////////////////////
+
+func (s *ServerV1) getFollowings(w http.ResponseWriter, r *http.Request) {
+	var err error
+	var user int64
+	var users []twitter.User
+	ctx := r.Context()
+
+	if user, err = s.extractAndCheckUser(ctx, r, "user"); err != nil {
+		result := map[string]string{
+			"error": err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound) // even if incorrect user return not found
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if users, err = s.tweeterService.Following(ctx, user); err != nil {
+		result := map[string]string{
+			"error": err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		// for better distinguish between not found and internal error -- better errors
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(users)
+
+}
+
+func (s *ServerV1) getFollowers(w http.ResponseWriter, r *http.Request) {
+	var err error
+	var user int64
+	var users []twitter.User
+	ctx := r.Context()
+
+	if user, err = s.extractAndCheckUser(ctx, r, "user"); err != nil {
+		result := map[string]string{
+			"error": err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound) // even if incorrect user return not found
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if users, err = s.tweeterService.Followers(ctx, user); err != nil {
+		result := map[string]string{
+			"error": err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		// for better distinguish between not found and internal error -- better errors
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(users)
 }
 
 func (s *ServerV1) followUser(w http.ResponseWriter, r *http.Request) {

@@ -28,10 +28,9 @@ func (tw *TwitterService) NewTweet(ctx context.Context, tweetData twitter.Tweet)
 	if err = tw.cache.PushTweet(ctx, tweetData); err != nil {
 		return fmt.Errorf("failed to push tweet to cache: %w", err)
 	}
-	// 1. Insert in database
-	// 2. Insert in redis
-	// 3. return error
-	panic("not implemented")
+	// but in between we can push it to any ML service to analyze the data
+	// just for future work
+	return nil // actually that's all I think, nothing more
 }
 
 func (tw *TwitterService) GetTweet(ctx context.Context, id int64) (twitter.Tweet, error) {
@@ -45,9 +44,6 @@ func (tw *TwitterService) GetUsersTweets(ctx context.Context, userId int64) ([]t
 func (tw *TwitterService) GetTimeline(ctx context.Context, userId int64) ([]twitter.Tweet, error) {
 	panic("not implemented")
 }
-func (tw *TwitterService) FollowUser(ctx context.Context, follow twitter.Follow) error {
-	panic("not implemented")
-}
 
 func (tw *TwitterService) GetUser(ctx context.Context, id int64) (twitter.User, error) {
 	var (
@@ -58,4 +54,37 @@ func (tw *TwitterService) GetUser(ctx context.Context, id int64) (twitter.User, 
 		return twitter.User{}, fmt.Errorf("failed to get user from database: %w", err)
 	}
 	return user, nil
+}
+
+// Follow part
+
+func (tw *TwitterService) FollowUser(ctx context.Context, follow twitter.Follow) error {
+	var err error
+	// Here we have to update the cache registry for user
+	if err = tw.db.FollowUser(ctx, follow); err != nil {
+		return fmt.Errorf("failed to follow user: %w", err)
+	}
+	return nil
+}
+
+func (tw *TwitterService) Followers(ctx context.Context, userId int64) ([]twitter.User, error) {
+	var (
+		followers []twitter.User
+		err       error
+	)
+	if followers, err = tw.db.Followers(ctx, userId); err != nil {
+		return []twitter.User{}, fmt.Errorf("failed to get followers: %w", err)
+	}
+	return followers, nil
+}
+
+func (tw *TwitterService) Following(ctx context.Context, userId int64) ([]twitter.User, error) {
+	var (
+		following []twitter.User
+		err       error
+	)
+	if following, err = tw.db.Following(ctx, userId); err != nil {
+		return []twitter.User{}, fmt.Errorf("failed to get following: %w", err)
+	}
+	return following, nil
 }

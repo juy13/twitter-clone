@@ -15,8 +15,12 @@ type MockTweeterService struct {
 	getTweet       func(ctx context.Context, id int64) (twitter.Tweet, error)
 	getUsersTweets func(ctx context.Context, userId int64) ([]twitter.Tweet, error) // returns tweets made by user
 	getTimeline    func(ctx context.Context, userId int64) ([]twitter.Tweet, error) // returns tweets from users the user is following
-	followUser     func(ctx context.Context, follow twitter.Follow) error
 	getUser        func(ctx context.Context, userId int64) (twitter.User, error)
+
+	// Follow
+	followUser   func(ctx context.Context, follow twitter.Follow) error
+	getFollowers func(ctx context.Context, userId int64) ([]twitter.User, error)
+	getFollowing func(ctx context.Context, userId int64) ([]twitter.User, error)
 }
 
 // I have to redefine it
@@ -51,4 +55,12 @@ func (m *MockTweeterService) FollowUser(ctx context.Context, follow twitter.Foll
 
 func (m *MockTweeterService) GetUser(ctx context.Context, id int64) (twitter.User, error) {
 	return m.getUser(ctx, id)
+}
+
+func (m *MockTweeterService) Followers(ctx context.Context, userId int64) ([]twitter.User, error) {
+	return m.getFollowers(ctx, userId)
+}
+
+func (m *MockTweeterService) Following(ctx context.Context, userId int64) ([]twitter.User, error) {
+	return m.getFollowing(ctx, userId)
 }
