@@ -48,3 +48,14 @@ func (tw *TwitterService) GetTimeline(ctx context.Context, userId int64) ([]twit
 func (tw *TwitterService) FollowUser(ctx context.Context, follow twitter.Follow) error {
 	panic("not implemented")
 }
+
+func (tw *TwitterService) GetUser(ctx context.Context, id int64) (twitter.User, error) {
+	var (
+		user twitter.User
+		err  error
+	)
+	if user, err = tw.db.GetUser(ctx, id); err != nil {
+		return twitter.User{}, fmt.Errorf("failed to get user from database: %w", err)
+	}
+	return user, nil
+}

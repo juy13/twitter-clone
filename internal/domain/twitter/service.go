@@ -8,4 +8,5 @@ type TwitterServiceI interface {
 	GetUsersTweets(ctx context.Context, userId int64) ([]Tweet, error) // returns tweets made by user
 	GetTimeline(ctx context.Context, userId int64) ([]Tweet, error)    // returns tweets from users the user is following
 	FollowUser(ctx context.Context, follow Follow) error
+	GetUser(ctx context.Context, id int64) (User, error)
 }

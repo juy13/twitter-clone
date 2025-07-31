@@ -104,3 +104,24 @@ func (p *PostgresDB) FollowUser(ctx context.Context, follow twitter.Follow) erro
 	}
 	return nil
 }
+
+// type User struct {
+// 	ID          int64     `json:"id"`
+// 	Username    string    `json:"username"`
+// 	DisplayName string    `json:"display_name"`
+// 	CreatedAt   time.Time `json:"created_at"`
+// }
+
+func (p *PostgresDB) GetUser(ctx context.Context, id int64) (twitter.User, error) {
+	var user twitter.User
+	query := `
+        SELECT id, username, display_name, created_at
+        FROM users
+        WHERE id = $1
+		`
+	err := p.db.GetContext(ctx, &user, query, id)
+	if err != nil {
+		return twitter.User{}, fmt.Errorf("failed to get user: %w", err)
+	}
+	return user, nil
+}

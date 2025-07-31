@@ -1,4 +1,4 @@
-package twitter_clone_api
+package main
 
 import (
 	"context"
@@ -72,7 +72,7 @@ func runServer(cCtx *cli.Context) error {
 	}
 	cache := redis_cache.NewRedisCache(configYaml)
 	twitterService := app.NewTweeterService(database, cache)
-	server := server.NewServerV1(twitterService, database, configYaml)
+	server := server.NewServerV1(twitterService, configYaml)
 
 	go func() {
 		log.Info().Msgf("Starting data server: %s \n", server.Info())
