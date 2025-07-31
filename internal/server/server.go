@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -57,9 +58,85 @@ func (s *ServerV1) returnTweets(w http.ResponseWriter, r *http.Request) {
 	s.tweeterService.GetTweet(ctx, 0)
 }
 
+func (s *ServerV1) extractAndCheckUser(ctx context.Context, r *http.Request, userField string) (int64, error) {
+	var (
+		userStr string
+		user    int64
+		err     error
+	)
+	if userStr = r.URL.Query().Get(userField); userStr == "" {
+		return 0, errors.New("user ID is required")
+	}
+	if user, err = strconv.ParseInt(userStr, 10, 64); err != nil {
+		return 0, errors.New("invalid user ID")
+	}
+	if _, err := s.tweeterService.GetUser(ctx, user); err != nil {
+		return 0, fmt.Errorf("user %v does not exist", user)
+	}
+	return user, nil
+}
+
 func (s *ServerV1) newTweet(w http.ResponseWriter, r *http.Request) {
+	var err error
+	var user int64
 	ctx := r.Context()
-	s.tweeterService.NewTweet(ctx, twitter.Tweet{})
+
+	if user, err = s.extractAndCheckUser(ctx, r, "user"); err != nil {
+		result := map[string]string{
+			"error": err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound) // even if incorrect user return not found
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		result := map[string]string{
+			"error": "Method not allowed",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	type tweetRequest struct {
+		Content string `json:"content"`
+	}
+	var tweet tweetRequest
+	if err := json.NewDecoder(r.Body).Decode(&tweet); err != nil {
+		result := map[string]string{
+			"error": "Invalid request body",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	// have to return the creation time
+	if err := s.tweeterService.NewTweet(ctx, twitter.Tweet{
+		UserID:    user,
+		Content:   tweet.Content,
+		CreatedAt: time.Now().UTC(),
+	}); err != nil {
+		result := map[string]string{
+			"error": "Failed to create tweet",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	response := map[string]string{
+		"message": "Tweet created successfully",
+	}
+	_ = json.NewEncoder(w).Encode(response)
 }
 
 func (s *ServerV1) getTweet(w http.ResponseWriter, r *http.Request) {
@@ -69,53 +146,15 @@ func (s *ServerV1) getTweet(w http.ResponseWriter, r *http.Request) {
 
 func (s *ServerV1) followUser(w http.ResponseWriter, r *http.Request) {
 	var (
-		err         error
-		user        int64
-		followee    int64
-		userStr     string
-		followeeStr string
+		err      error
+		user     int64
+		followee int64
 	)
 	ctx := r.Context()
-	if userStr = r.URL.Query().Get("user"); userStr == "" {
-		result := map[string]string{
-			"error": "User ID is required",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(result)
-		return
-	}
-	if followeeStr = r.URL.Query().Get("followee"); followeeStr == "" {
-		result := map[string]string{
-			"error": "Followee ID is required",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(result)
-		return
-	}
-	if user, err = strconv.ParseInt(r.URL.Query().Get("user"), 10, 64); err != nil {
-		result := map[string]string{
-			"error": "Invalid user ID",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(result)
-		return
-	}
-	if followee, err = strconv.ParseInt(r.URL.Query().Get("followee"), 10, 64); err != nil {
-		result := map[string]string{
-			"error": "Invalid user ID",
-		}
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(w).Encode(result)
-		return
-	}
 
-	if _, err := s.tweeterService.GetUser(ctx, user); err != nil {
+	if user, err = s.extractAndCheckUser(ctx, r, "user"); err != nil {
 		result := map[string]string{
-			"error": fmt.Sprintf("User %v does not exist", user),
+			"error": err.Error(),
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
@@ -123,9 +162,9 @@ func (s *ServerV1) followUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, err := s.tweeterService.GetUser(ctx, followee); err != nil {
+	if followee, err = s.extractAndCheckUser(ctx, r, "followee"); err != nil {
 		result := map[string]string{
-			"error": fmt.Sprintf("User %v does not exist", user),
+			"error": err.Error(),
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)

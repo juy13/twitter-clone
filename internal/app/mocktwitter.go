@@ -7,6 +7,7 @@ import (
 
 type FollowFunc func(ctx context.Context, follow twitter.Follow) error
 type GetUserFunc func(ctx context.Context, userId int64) (twitter.User, error)
+type NewTweetFunc func(ctx context.Context, tweetData twitter.Tweet) error
 
 // Mock implementation of TweeterService
 type MockTweeterService struct {
@@ -20,8 +21,9 @@ type MockTweeterService struct {
 
 // I have to redefine it
 // Maybe with use of Options pattern
-func NewMockTweeterService(followUser FollowFunc, getUser GetUserFunc) *MockTweeterService {
+func NewMockTweeterService(newTweet NewTweetFunc, followUser FollowFunc, getUser GetUserFunc) *MockTweeterService {
 	return &MockTweeterService{
+		newTweet:   newTweet,
 		followUser: followUser,
 		getUser:    getUser,
 	}

@@ -14,6 +14,62 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestNewTweet(t *testing.T) {
+	var mockNewTweetFuncNil = func(ctx context.Context, tweetData twitter.Tweet) error { return nil }
+	tests := []struct {
+		name             string
+		queryParams      string
+		mockNewTweetFunc app.NewTweetFunc
+		mockGetUserFunc  app.GetUserFunc
+		expectedStatus   int
+		expectedBody     map[string]string
+		expectedFollow   twitter.Follow
+		method           string
+	}{
+		{
+			name:             "Unknown user",
+			queryParams:      "user=1000&followee=2",
+			mockNewTweetFunc: mockNewTweetFuncNil,
+			mockGetUserFunc: func(ctx context.Context, id int64) (twitter.User, error) {
+				return twitter.User{}, errors.New("user not found")
+			},
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   map[string]string{"error": "user 1000 does not exist"},
+			method:         "POST",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockService := app.NewMockTweeterService(tt.mockNewTweetFunc, nil, tt.mockGetUserFunc)
+			server := &ServerV1{tweeterService: mockService}
+
+			req := httptest.NewRequest(http.MethodGet, "/follow?"+tt.queryParams, nil)
+			w := httptest.NewRecorder()
+
+			server.newTweet(w, req)
+
+			assert.Equal(t, tt.expectedStatus, w.Code)
+
+			if tt.expectedBody != nil {
+				var result map[string]string
+				err := json.NewDecoder(w.Body).Decode(&result)
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedBody, result)
+			} else {
+				var result twitter.Follow
+				err := json.NewDecoder(w.Body).Decode(&result)
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expectedFollow.FollowerID, result.FollowerID)
+				assert.Equal(t, tt.expectedFollow.FolloweeID, result.FolloweeID)
+				assert.False(t, result.CreatedAt.IsZero())
+			}
+
+			assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
+		})
+	}
+}
+
 func TestFollowUser(t *testing.T) {
 	var mockGetUserFuncOK = func(ctx context.Context, id int64) (twitter.User, error) {
 		return twitter.User{}, nil
@@ -40,36 +96,20 @@ func TestFollowUser(t *testing.T) {
 			},
 		},
 		{
-			name:            "Missing user ID",
-			queryParams:     "followee=2",
-			mockFollowFunc:  mockFollowFuncNil,
-			mockGetUserFunc: mockGetUserFuncOK,
-			expectedStatus:  http.StatusBadRequest,
-			expectedBody:    map[string]string{"error": "User ID is required"},
-		},
-		{
 			name:            "Missing followee ID",
 			queryParams:     "user=1",
 			mockFollowFunc:  mockFollowFuncNil,
 			mockGetUserFunc: mockGetUserFuncOK,
-			expectedStatus:  http.StatusBadRequest,
-			expectedBody:    map[string]string{"error": "Followee ID is required"},
+			expectedStatus:  http.StatusNotFound,
+			expectedBody:    map[string]string{"error": "user ID is required"},
 		},
 		{
 			name:            "Invalid user ID",
 			queryParams:     "user=invalid&followee=2",
 			mockFollowFunc:  mockFollowFuncNil,
 			mockGetUserFunc: mockGetUserFuncOK,
-			expectedStatus:  http.StatusBadRequest,
-			expectedBody:    map[string]string{"error": "Invalid user ID"},
-		},
-		{
-			name:            "Invalid followee ID",
-			queryParams:     "user=1&followee=invalid",
-			mockFollowFunc:  mockFollowFuncNil,
-			mockGetUserFunc: mockGetUserFuncOK,
-			expectedStatus:  http.StatusBadRequest,
-			expectedBody:    map[string]string{"error": "Invalid user ID"},
+			expectedStatus:  http.StatusNotFound,
+			expectedBody:    map[string]string{"error": "invalid user ID"},
 		},
 		{
 			name:        "Service failure",
@@ -89,13 +129,13 @@ func TestFollowUser(t *testing.T) {
 				return twitter.User{}, errors.New("user not found")
 			},
 			expectedStatus: http.StatusNotFound,
-			expectedBody:   map[string]string{"error": "User 1000 does not exist"},
+			expectedBody:   map[string]string{"error": "user 1000 does not exist"},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			mockService := app.NewMockTweeterService(tt.mockFollowFunc, tt.mockGetUserFunc)
+			mockService := app.NewMockTweeterService(nil, tt.mockFollowFunc, tt.mockGetUserFunc)
 			server := &ServerV1{tweeterService: mockService}
 
 			req := httptest.NewRequest(http.MethodGet, "/follow?"+tt.queryParams, nil)
