@@ -61,6 +61,11 @@ func (c *RedisCache) PushTweet(ctx context.Context, tweet twitter.Tweet) error {
 }
 
 func (c *RedisCache) PushToUserFeed(ctx context.Context, userID, tweetID int64) error {
+	pipe := c.client.TxPipeline()
+	feedKey := fmt.Sprintf("timeline:%d", userID)
+	pipe.LPush(ctx, feedKey, tweetID)
+	pipe.LTrim(ctx, feedKey, 0, 99) // TODO add to config as a pram for redis
+	pipe.Expire(ctx, feedKey, 24*time.Hour)
 	return nil
 }
 
@@ -70,6 +75,13 @@ func (c *RedisCache) GetUserFeed(ctx context.Context, userID int64, limit int) (
 
 func (c *RedisCache) GetTweet(ctx context.Context, tweetID int64) (twitter.Tweet, error) {
 	var tweet twitter.Tweet
+	tweetData, err := c.client.Get(ctx, fmt.Sprintf("tweet:%v", tweetID)).Result()
+	if err != nil {
+		return tweet, fmt.Errorf("failed to get tweet %v: %v", tweetID, err)
+	}
+	if err := json.Unmarshal([]byte(tweetData), &tweet); err != nil {
+		return tweet, fmt.Errorf("failed to unmarshal tweet %v: %v", tweetID, err)
+	}
 	return tweet, nil
 }
 
@@ -79,4 +91,36 @@ func (c *RedisCache) SetActiveUser(ctx context.Context, userID int64, ttl time.D
 
 func (c *RedisCache) GetActiveUsers(ctx context.Context) ([]string, error) {
 	return nil, nil
+}
+
+func (c *RedisCache) SubscribeToTweetsChannel(ctx context.Context, channel string) (<-chan string, error) {
+	pubsub := c.client.Subscribe(ctx, channel)
+	ch := pubsub.Channel()
+	chanRet := make(chan string)
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				pubsub.Close()
+				close(chanRet)
+				return
+			default:
+				msg, ok := <-ch
+				if !ok {
+					return // send error and die
+				}
+				chanRet <- msg.Payload
+			}
+		}
+	}()
+	return chanRet, nil
+}
+
+func (c *RedisCache) GetFollowers(ctx context.Context, userID int64) ([]twitter.User, error) {
+	var followers []twitter.User
+	err := c.client.Get(ctx, fmt.Sprintf("followers:%d", userID)).Scan(&followers)
+	if err != nil && err != redis.Nil {
+		return nil, fmt.Errorf("failed to get followers from cache: %w", err)
+	}
+	return followers, nil
 }

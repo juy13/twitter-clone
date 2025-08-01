@@ -75,6 +75,7 @@ func (tw *TwitterService) Followers(ctx context.Context, userId int64) ([]twitte
 	if followers, err = tw.db.Followers(ctx, userId); err != nil {
 		return []twitter.User{}, fmt.Errorf("failed to get followers: %w", err)
 	}
+	// populate them to cache
 	return followers, nil
 }
 

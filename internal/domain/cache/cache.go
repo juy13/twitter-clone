@@ -13,4 +13,11 @@ type Cache interface {
 	GetTweet(ctx context.Context, tweetID int64) (twitter.Tweet, error)
 	SetActiveUser(ctx context.Context, userID int64, ttl time.Duration) error
 	GetActiveUsers(ctx context.Context) ([]string, error)
+
+	// this part should be moved to pub/sub service but no time rn
+	// subscribe to tweets channel
+	SubscribeToTweetsChannel(ctx context.Context, channel string) (<-chan string, error)
+
+	// Follower
+	GetFollowers(ctx context.Context, userID int64) ([]twitter.User, error)
 }

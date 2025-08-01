@@ -1,11 +1,19 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
+	"os/signal"
+	"syscall"
+	"twitter-clone/internal/config"
+	"twitter-clone/internal/worker"
 
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
+
+	redis_cache "twitter-clone/internal/cache"
+	postgres_db "twitter-clone/internal/database/postgres"
 )
 
 // The idea is that worker will check the Redis global queue and on new item
@@ -24,11 +32,11 @@ func main() {
 		fmt.Printf("Build Time: %s\n", BuildTime)
 	}
 	app := &cli.App{
-		Name:            "Twitter Clone API",
+		Name:            "Twitter Worker",
 		Version:         GitTag,
 		HideHelpCommand: true,
 		HideVersion:     false,
-		Description:     "Simulates Twitter",
+		Description:     "Simulates the Twitter worker (not Elon)",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "config",
@@ -43,5 +51,34 @@ func main() {
 }
 
 func runWorker(cCtx *cli.Context) error {
-	panic("not implemented yet")
+	var (
+		err        error
+		configYaml *config.YamlConfig
+		database   *postgres_db.PostgresDB
+	)
+
+	signalCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer cancel()
+
+	configYaml, err = config.NewYamlConfig(cCtx.String("config"))
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	if database, err = postgres_db.NewPostgresDB(configYaml); err != nil {
+		return fmt.Errorf("failed to connect to database: %w", err)
+	}
+	cache := redis_cache.NewRedisCache(configYaml)
+
+	worker := worker.NewWorker(database, cache)
+
+	go worker.Start(signalCtx)
+
+	<-signalCtx.Done()
+	log.Info().Msg("Shut down the worker")
+
+	// select {
+	// case
+	// }
+	return nil
 }
