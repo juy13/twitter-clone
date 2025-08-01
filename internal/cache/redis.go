@@ -69,9 +69,26 @@ func (c *RedisCache) PushToUserFeed(ctx context.Context, userID, tweetID int64) 
 	return nil
 }
 
-func (c *RedisCache) GetUserFeed(ctx context.Context, userID int64, limit int) ([]int, error) {
+/////////////////////////////////////
+//	Timeline / Feed
+////////////////////////////////////
+
+func (c *RedisCache) GetUserTimeline(ctx context.Context, userID int64, limit int) ([]int, error) {
 	return nil, nil
 }
+
+func (c *RedisCache) CheckUserTimelineExists(ctx context.Context, userID int64) (bool, error) {
+	var err error
+	var exists int64
+	timelineKey := fmt.Sprintf("timeline::%v", userID)
+	if exists, err = c.client.Exists(ctx, timelineKey).Result(); err != nil {
+		return false, err
+	}
+	// check it i'm not sure
+	return exists != 0, nil
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////
 
 func (c *RedisCache) GetTweet(ctx context.Context, tweetID int64) (twitter.Tweet, error) {
 	var tweet twitter.Tweet
@@ -116,6 +133,8 @@ func (c *RedisCache) SubscribeToTweetsChannel(ctx context.Context, channel strin
 	return chanRet, nil
 }
 
+// Follow part
+
 func (c *RedisCache) GetFollowers(ctx context.Context, userID int64) ([]twitter.User, error) {
 	var followers []twitter.User
 	err := c.client.Get(ctx, fmt.Sprintf("followers:%d", userID)).Scan(&followers)
@@ -123,4 +142,17 @@ func (c *RedisCache) GetFollowers(ctx context.Context, userID int64) ([]twitter.
 		return nil, fmt.Errorf("failed to get followers from cache: %w", err)
 	}
 	return followers, nil
+}
+
+func (c *RedisCache) SetFollowers(ctx context.Context, userID int64, followers []twitter.User) error {
+	// or maybe we just have to store only ids?
+	followersJSON, err := json.Marshal(followers)
+	if err != nil {
+		return fmt.Errorf("failed to marshal followers: %w", err)
+	}
+	err = c.client.Set(ctx, fmt.Sprintf("followers:%d", userID), followersJSON, 24*time.Hour).Err() // TODO set to the config expire time for the user
+	if err != nil {
+		return fmt.Errorf("failed to set followers in cache: %w", err)
+	}
+	return nil
 }

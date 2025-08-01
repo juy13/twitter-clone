@@ -3,21 +3,23 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"twitter-clone/internal/config"
-	"twitter-clone/internal/worker"
+	wsserver "twitter-clone/internal/ws_server"
 
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 
 	redis_cache "twitter-clone/internal/cache"
-	postgres_db "twitter-clone/internal/database/postgres"
 )
 
-// The idea is that worker will check the Redis global queue and on new item
-// it will send to the user's local queue new tweet
+// Idea is that there is a web socket server that does:
+// 1. accepts connects from users
+// 2. stores active users in redis
+// 3. if any following pushes tweet -- send to this user
 
 var (
 	GitCommit string
@@ -32,29 +34,28 @@ func main() {
 		fmt.Printf("Build Time: %s\n", BuildTime)
 	}
 	app := &cli.App{
-		Name:            "Twitter Worker",
+		Name:            "Twitter WebSocket Server",
 		Version:         GitTag,
 		HideHelpCommand: true,
 		HideVersion:     false,
-		Description:     "Simulates the Twitter worker (not Elon)",
+		Description:     "Simulates(actually works) a web socket connection for the real time updates",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:    "config",
 				Aliases: []string{"c"},
 			},
 		},
-		Action: runWorker,
+		Action: runWebSocketServer,
 	}
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal().Msg(err.Error())
 	}
 }
 
-func runWorker(cCtx *cli.Context) error {
+func runWebSocketServer(cCtx *cli.Context) error {
 	var (
 		err        error
 		configYaml *config.YamlConfig
-		database   *postgres_db.PostgresDB
 	)
 
 	signalCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -65,17 +66,22 @@ func runWorker(cCtx *cli.Context) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	if database, err = postgres_db.NewPostgresDB(configYaml); err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
-	}
 	cache := redis_cache.NewRedisCache(configYaml)
+	websocketServer := wsserver.NewWebSocketServer(cache)
 
-	worker := worker.NewWorker(database, cache)
+	go func() {
+		log.Info().Msgf("Starting web socket server: %s \n", websocketServer.Info())
+		if err := websocketServer.Start(); err != nil && err != http.ErrServerClosed {
+			log.Fatal().Msgf("Common server failed: %v", err)
+		}
 
-	go worker.Start(signalCtx)
+	}()
 
 	<-signalCtx.Done()
-	log.Info().Msg("Shut down the worker")
+	log.Info().Msg("Shut down web socket server")
+	if err = websocketServer.Stop(context.TODO()); err != nil {
+		log.Fatal().Msg("Can't terminate web socket server")
+	}
 
 	return nil
 }

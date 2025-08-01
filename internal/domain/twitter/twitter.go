@@ -30,3 +30,8 @@ type Follow struct {
 	FolloweeID int64     `json:"followee_id"`
 	CreatedAt  time.Time `json:"created_at"`
 }
+
+type ChannelTweet struct {
+	UserID int64 `json:"user_id"`
+	Tweet  Tweet `json:"tweet"`
+}

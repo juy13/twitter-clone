@@ -51,6 +51,7 @@ func (s *ServerV1) registerRoutes() {
 	router.HandleFunc("/api/v1/followings", s.getFollowings).Methods("GET")
 	router.HandleFunc("/api/v1/followers", s.getFollowers).Methods("GET")
 	// Add more routes
+	router.HandleFunc("/api/v1/get_user", s.getUser).Methods("GET")
 }
 
 func (s *ServerV1) Start() error {
@@ -77,6 +78,35 @@ func (s *ServerV1) extractAndCheckUser(ctx context.Context, r *http.Request, use
 		return 0, fmt.Errorf("user %v does not exist", user)
 	}
 	return user, nil
+}
+
+func (s *ServerV1) getUser(w http.ResponseWriter, r *http.Request) {
+	var err error
+	var userID int64
+	var user twitter.User
+	ctx := r.Context()
+	if userID, err = s.extractAndCheckUser(ctx, r, "user"); err != nil {
+		result := map[string]string{
+			"error": err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if user, err = s.tweeterService.GetUser(ctx, userID); err != nil {
+		result := map[string]string{
+			"error": err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(user)
 }
 
 /////////////////////////////////////////////////////
