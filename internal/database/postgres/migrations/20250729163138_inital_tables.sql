@@ -2,23 +2,23 @@
 -- +goose StatementBegin
 -- Users table to store user information
 CREATE TABLE users (
-    id BIGINT PRIMARY KEY,
+    id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     username VARCHAR(50) NOT NULL UNIQUE,
-    created_at TIMESTAMP CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE tweets (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
     user_id BIGINT NOT NULL,
     content TEXT NOT NULL,
-    created_at TIMESTAMP CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE follows (
     follower_id BIGINT NOT NULL, -- the one who follows
     followed_id BIGINT NOT NULL, -- the one being followed
-    created_at TIMESTAMP CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (follower_id, followed_id),
     FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (followed_id) REFERENCES users(id) ON DELETE CASCADE,

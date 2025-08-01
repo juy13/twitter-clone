@@ -17,16 +17,18 @@ import (
 type ServerV1 struct {
 	tweeterService twitter.TwitterServiceI
 	server         *http.Server
+	router         *mux.Router
 
 	info string
 }
 
 func NewServerV1(service twitter.TwitterServiceI, config config.APIConfig) *ServerV1 {
-	muxServer := NewMuxServer(config)
+	muxServer, router := NewMuxServer(config)
 	server := &ServerV1{
 		tweeterService: service,
 		server:         muxServer,
 		info:           fmt.Sprintf("Running server on %v", config.Host()+":"+strconv.Itoa(config.Port())),
+		router:         router,
 	}
 	server.registerRoutes()
 	return server
@@ -37,7 +39,7 @@ func (s *ServerV1) Info() string {
 }
 
 func (s *ServerV1) registerRoutes() {
-	router := s.server.Handler.(*mux.Router)
+	router := s.router
 
 	// Tweets
 	router.HandleFunc("/api/v1/tweet", s.newTweet).Methods("POST")
@@ -52,6 +54,9 @@ func (s *ServerV1) registerRoutes() {
 	router.HandleFunc("/api/v1/followers", s.getFollowers).Methods("GET")
 	// Add more routes
 	router.HandleFunc("/api/v1/get_user", s.getUser).Methods("GET")
+
+	// Add user
+	router.HandleFunc("/api/v1/new_user", s.newUser).Methods("POST")
 }
 
 func (s *ServerV1) Start() error {
@@ -78,6 +83,52 @@ func (s *ServerV1) extractAndCheckUser(ctx context.Context, r *http.Request, use
 		return 0, fmt.Errorf("user %v does not exist", user)
 	}
 	return user, nil
+}
+
+func (s *ServerV1) newUser(w http.ResponseWriter, r *http.Request) {
+	var err error
+	var userID int64
+	var user twitter.User
+	ctx := r.Context()
+
+	if r.Method != http.MethodPost {
+		result := map[string]string{
+			"error": "Method not allowed",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
+		result := map[string]string{
+			"error": "Invalid request body",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	// TODO check if user exists
+
+	if userID, err = s.tweeterService.CreateUser(ctx, user); err != nil {
+		result := map[string]string{
+			"error": err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_ = json.NewEncoder(w).Encode(twitter.User{
+		ID:        userID,
+		Username:  user.Username,
+		CreatedAt: time.Now(),
+	})
 }
 
 func (s *ServerV1) getUser(w http.ResponseWriter, r *http.Request) {

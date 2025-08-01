@@ -3,10 +3,9 @@ package twitter
 import "time"
 
 type User struct {
-	ID          int64     `json:"id" db:"id"`
-	Username    string    `json:"username" db:"username"`
-	DisplayName string    `json:"display_name" db:"display_name"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at"`
+	ID        int64     `json:"id" db:"id"`
+	Username  string    `json:"username" db:"username"`
+	CreatedAt time.Time `json:"created_at" db:"created_at"`
 }
 
 // CREATE TABLE tweets (
@@ -26,9 +25,9 @@ type Tweet struct {
 }
 
 type Follow struct {
-	FollowerID int64     `json:"follower_id"`
-	FolloweeID int64     `json:"followee_id"`
-	CreatedAt  time.Time `json:"created_at"`
+	FollowerID int64     `json:"follower_id" db:"follower_id"`
+	FolloweeID int64     `json:"followee_id" db:"followee_id"`
+	CreatedAt  time.Time `json:"created_at" db:"created_at"`
 }
 
 type ChannelTweet struct {

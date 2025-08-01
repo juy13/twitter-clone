@@ -24,7 +24,7 @@ func enableCORS(next http.Handler) http.Handler {
 	})
 }
 
-func NewMuxServer(config config.APIConfig) *http.Server {
+func NewMuxServer(config config.APIConfig) (*http.Server, *mux.Router) {
 	router := mux.NewRouter()
 
 	// Wrap router with CORS middleware
@@ -34,5 +34,5 @@ func NewMuxServer(config config.APIConfig) *http.Server {
 	return &http.Server{
 		Addr:    commonAddress, // Configurable port
 		Handler: handler,
-	}
+	}, router
 }

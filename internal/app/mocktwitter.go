@@ -21,6 +21,9 @@ type MockTweeterService struct {
 	followUser   func(ctx context.Context, follow twitter.Follow) error
 	getFollowers func(ctx context.Context, userId int64) ([]twitter.User, error)
 	getFollowing func(ctx context.Context, userId int64) ([]twitter.User, error)
+
+	// User
+	createUser func(ctx context.Context, user twitter.User) (int64, error)
 }
 
 // I have to redefine it
@@ -63,4 +66,8 @@ func (m *MockTweeterService) Followers(ctx context.Context, userId int64) ([]twi
 
 func (m *MockTweeterService) Following(ctx context.Context, userId int64) ([]twitter.User, error) {
 	return m.getFollowing(ctx, userId)
+}
+
+func (m *MockTweeterService) CreateUser(ctx context.Context, user twitter.User) (int64, error) {
+	return m.createUser(ctx, user)
 }

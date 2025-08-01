@@ -113,3 +113,11 @@ func (db *InMemoryDB) GetUser(ctx context.Context, id int64) (twitter.User, erro
 	}
 	return user, nil
 }
+
+func (db *InMemoryDB) CreateUser(ctx context.Context, user twitter.User) (int64, error) {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	id := int64(len(db.users)) + 1
+	db.users[id] = user
+	return id, nil
+}

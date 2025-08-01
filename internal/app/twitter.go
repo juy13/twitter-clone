@@ -45,17 +45,6 @@ func (tw *TwitterService) GetTimeline(ctx context.Context, userId int64) ([]twit
 	panic("not implemented")
 }
 
-func (tw *TwitterService) GetUser(ctx context.Context, id int64) (twitter.User, error) {
-	var (
-		user twitter.User
-		err  error
-	)
-	if user, err = tw.db.GetUser(ctx, id); err != nil {
-		return twitter.User{}, fmt.Errorf("failed to get user from database: %w", err)
-	}
-	return user, nil
-}
-
 // Follow part
 
 func (tw *TwitterService) FollowUser(ctx context.Context, follow twitter.Follow) error {
@@ -88,4 +77,27 @@ func (tw *TwitterService) Following(ctx context.Context, userId int64) ([]twitte
 		return []twitter.User{}, fmt.Errorf("failed to get following: %w", err)
 	}
 	return following, nil
+}
+
+// User part
+func (tw *TwitterService) CreateUser(ctx context.Context, user twitter.User) (int64, error) {
+	var (
+		id  int64
+		err error
+	)
+	if id, err = tw.db.CreateUser(ctx, user); err != nil {
+		return 0, fmt.Errorf("failed to create user: %w", err)
+	}
+	return id, nil
+}
+
+func (tw *TwitterService) GetUser(ctx context.Context, id int64) (twitter.User, error) {
+	var (
+		user twitter.User
+		err  error
+	)
+	if user, err = tw.db.GetUser(ctx, id); err != nil {
+		return twitter.User{}, fmt.Errorf("failed to get user from database: %w", err)
+	}
+	return user, nil
 }

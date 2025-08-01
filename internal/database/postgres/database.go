@@ -95,14 +95,13 @@ func (p *PostgresDB) GetTimeline(ctx context.Context, userID int64) ([]twitter.T
 // type User struct {
 // 	ID          int64     `json:"id"`
 // 	Username    string    `json:"username"`
-// 	DisplayName string    `json:"display_name"`
 // 	CreatedAt   time.Time `json:"created_at"`
 // }
 
 func (p *PostgresDB) GetUser(ctx context.Context, id int64) (twitter.User, error) {
 	var user twitter.User
 	query := `
-        SELECT id, username, display_name, created_at
+        SELECT id, username, created_at
         FROM users
         WHERE id = $1
 		`
@@ -113,6 +112,18 @@ func (p *PostgresDB) GetUser(ctx context.Context, id int64) (twitter.User, error
 	return user, nil
 }
 
+func (p *PostgresDB) CreateUser(ctx context.Context, userData twitter.User) (int64, error) {
+	var userID int64
+	query := `
+		INSERT INTO users (username) VALUES ($1)  RETURNING id;
+	`
+	err := p.db.QueryRowxContext(ctx, query, userData.Username).Scan(&userID)
+	if err != nil {
+		return 0, fmt.Errorf("failed to insert user: %w", err)
+	}
+	return userID, nil
+}
+
 // /////////////////////////////////////////
 //
 //	Follow part
@@ -121,10 +132,10 @@ func (p *PostgresDB) GetUser(ctx context.Context, id int64) (twitter.User, error
 func (p *PostgresDB) FollowUser(ctx context.Context, follow twitter.Follow) error {
 	query := `
         INSERT INTO follows (follower_id, followed_id)
-        VALUES (:follower_id, :followed_id)
+        VALUES ($1, $2)
         ON CONFLICT DO NOTHING
     `
-	_, err := p.db.NamedExecContext(ctx, query, follow)
+	_, err := p.db.ExecContext(ctx, query, follow.FollowerID, follow.FolloweeID)
 	if err != nil {
 		return fmt.Errorf("failed to follow user: %w", err)
 	}
@@ -134,12 +145,12 @@ func (p *PostgresDB) FollowUser(ctx context.Context, follow twitter.Follow) erro
 func (p *PostgresDB) Followers(ctx context.Context, userId int64) ([]twitter.User, error) {
 	var users []twitter.User
 	query := `
-        SELECT id, username, display_name, created_at
+        SELECT id, username, follows.created_at
         FROM users
         JOIN follows ON follows.follower_id = users.id
 		WHERE follows.followed_id = $1
 		`
-	err := p.db.GetContext(ctx, &users, query, userId)
+	err := p.db.SelectContext(ctx, &users, query, userId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get followers: %w", err)
 	}
@@ -149,12 +160,12 @@ func (p *PostgresDB) Followers(ctx context.Context, userId int64) ([]twitter.Use
 func (p *PostgresDB) Following(ctx context.Context, userId int64) ([]twitter.User, error) {
 	var users []twitter.User
 	query := `
-        SELECT id, username, display_name, created_at
+        SELECT id, username, follows.created_at as created_at
         FROM users
         JOIN follows ON follows.followed_id = users.id
 		WHERE follows.follower_id = $1
 		`
-	err := p.db.GetContext(ctx, &users, query, userId)
+	err := p.db.SelectContext(ctx, &users, query, userId)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get following: %w", err)
 	}

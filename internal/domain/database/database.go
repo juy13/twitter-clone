@@ -16,4 +16,7 @@ type DatabaseI interface {
 	FollowUser(ctx context.Context, follow twitter.Follow) error
 	Followers(ctx context.Context, userId int64) ([]twitter.User, error)
 	Following(ctx context.Context, userId int64) ([]twitter.User, error)
+
+	// User part
+	CreateUser(ctx context.Context, user twitter.User) (int64, error)
 }

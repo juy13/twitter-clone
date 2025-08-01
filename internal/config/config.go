@@ -9,7 +9,7 @@ import (
 )
 
 type YamlConfig struct {
-	API API `yaml:"port"`
+	API API `yaml:"api"`
 
 	// database
 	Database Database `yaml:"database"`
