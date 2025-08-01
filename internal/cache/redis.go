@@ -46,7 +46,7 @@ func (c *RedisCache) PushTweet(ctx context.Context, tweet twitter.Tweet) error {
 	pipe := c.client.TxPipeline()
 
 	tweetKey := fmt.Sprintf("tweet:%v", tweet.ID)
-	pipe.Set(ctx, tweetKey, data, c.tweetExpireTime)
+	pipe.Set(ctx, tweetKey, data, c.tweetExpireTime*time.Minute)
 	pipe.Publish(ctx, "tweets:channel", tweet.ID) // here is coming the pub/sub model so the worker have to know when the tweet is published
 
 	pipe.LPush(ctx, "tweets:global", tweet.ID)

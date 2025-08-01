@@ -20,6 +20,7 @@ func NewTweeterService(db database.DatabaseI, cache cache.Cache) *TwitterService
 	}
 }
 
+// TODO return tweet id
 func (tw *TwitterService) NewTweet(ctx context.Context, tweetData twitter.Tweet) error {
 	var err error
 	if tweetData.ID, err = tw.db.NewTweet(ctx, tweetData); err != nil {

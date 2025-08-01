@@ -36,11 +36,11 @@ func NewPostgresDB(config config.DatabaseConfig) (*PostgresDB, error) {
 func (p *PostgresDB) NewTweet(ctx context.Context, tweet twitter.Tweet) (int64, error) {
 	query := `
         INSERT INTO tweets (user_id, content)
-        VALUES (:user_id, :content)
+        VALUES ($1, $2)
         RETURNING id
     ` // https://stackoverflow.com/questions/19167349/postgresql-insert-from-select-returning-id
 	var tweetID int64
-	err := p.db.QueryRowxContext(ctx, query, tweet).Scan(&tweetID)
+	err := p.db.QueryRowxContext(ctx, query, tweet.UserID, tweet.Content).Scan(&tweetID)
 	if err != nil {
 		return 0, fmt.Errorf("failed to insert tweet: %w", err)
 	}
