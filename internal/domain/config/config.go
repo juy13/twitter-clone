@@ -27,6 +27,8 @@ type CacheConfig interface {
 	MaxTweets2Keep() int
 	TweetExpireTimeMinutes() int
 	UserFeedExpireTimeMinutes() int
+	TweetTimelineExpireTimeMinutes() int
+	MaxTweetsTimelineItems() int
 }
 
 type WSServerConfig interface {

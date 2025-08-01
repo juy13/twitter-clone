@@ -36,12 +36,14 @@ type Database struct {
 }
 
 type CacheConfig struct {
-	Address                   string `yaml:"address"`
-	Password                  string `yaml:"password"`
-	DB                        int    `yaml:"db"`
-	MaxTweets2Keep            int    `yaml:"max_tweets_to_keep"`
-	TweetExpireTimeMinutes    int    `yaml:"tweet_expire_time_minutes"`
-	UserFeedExpireTimeMinutes int    `yaml:"user_feed_expire_time_minutes"`
+	Address                        string `yaml:"address"`
+	Password                       string `yaml:"password"`
+	DB                             int    `yaml:"db"`
+	MaxTweets2Keep                 int    `yaml:"max_tweets_to_keep"`
+	TweetExpireTimeMinutes         int    `yaml:"tweet_expire_time_minutes"`
+	UserFeedExpireTimeMinutes      int    `yaml:"user_feed_expire_time_minutes"`
+	TweetTimelineExpireTimeMinutes int    `yaml:"tweet_timeline_expire_time_minutes"`
+	MaxTweetsTimelineItems         int    `yaml:"max_tweets_timeline_items"`
 }
 
 type WSSConfig struct {
@@ -134,6 +136,12 @@ func (c *YamlConfig) TweetExpireTimeMinutes() int {
 }
 func (c *YamlConfig) UserFeedExpireTimeMinutes() int {
 	return c.Cache.UserFeedExpireTimeMinutes
+}
+func (c *YamlConfig) TweetTimelineExpireTimeMinutes() int {
+	return c.Cache.TweetTimelineExpireTimeMinutes
+}
+func (c *YamlConfig) MaxTweetsTimelineItems() int {
+	return c.Cache.MaxTweetsTimelineItems
 }
 
 ///////////////////////////////////

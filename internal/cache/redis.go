@@ -17,6 +17,9 @@ type RedisCache struct {
 	maxTweets2Keep     int
 	tweetExpireTime    time.Duration
 	userFeedExpireTime time.Duration
+
+	maxTweetsTimelineItems  int
+	tweetTimelineExpireTime time.Duration
 }
 
 func NewRedisCache(config config.CacheConfig) *RedisCache {
@@ -26,10 +29,12 @@ func NewRedisCache(config config.CacheConfig) *RedisCache {
 		DB:       config.CacheDB(),
 	})
 	return &RedisCache{
-		client:             client,
-		maxTweets2Keep:     config.MaxTweets2Keep(),
-		tweetExpireTime:    time.Duration(config.TweetExpireTimeMinutes()),
-		userFeedExpireTime: time.Duration(config.TweetExpireTimeMinutes()),
+		client:                  client,
+		maxTweets2Keep:          config.MaxTweets2Keep(),
+		tweetExpireTime:         time.Duration(config.TweetExpireTimeMinutes()),
+		userFeedExpireTime:      time.Duration(config.TweetExpireTimeMinutes()),
+		maxTweetsTimelineItems:  config.MaxTweetsTimelineItems(),
+		tweetTimelineExpireTime: time.Duration(config.TweetTimelineExpireTimeMinutes()),
 	}
 }
 
@@ -64,8 +69,8 @@ func (c *RedisCache) PushToUserFeed(ctx context.Context, userID, tweetID int64) 
 	pipe := c.client.TxPipeline()
 	feedKey := fmt.Sprintf("timeline:%d", userID)
 	pipe.LPush(ctx, feedKey, tweetID)
-	pipe.LTrim(ctx, feedKey, 0, 99) // TODO add to config as a pram for redis
-	pipe.Expire(ctx, feedKey, 24*time.Hour)
+	pipe.LTrim(ctx, feedKey, 0, int64(c.maxTweetsTimelineItems))
+	pipe.Expire(ctx, feedKey, c.tweetTimelineExpireTime*time.Minute)
 	return nil
 }
 
