@@ -28,3 +28,9 @@ type CacheConfig interface {
 	TweetExpireTimeMinutes() int
 	UserFeedExpireTimeMinutes() int
 }
+
+type WSServerConfig interface {
+	WSServerHost() string
+	WSServerPort() int
+	WSServerAPIPath() string
+}

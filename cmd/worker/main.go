@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 	"twitter-clone/internal/config"
-	"twitter-clone/internal/worker"
+	"twitter-clone/internal/server/worker"
 
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"

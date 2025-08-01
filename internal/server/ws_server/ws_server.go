@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"twitter-clone/internal/domain/cache"
+	"twitter-clone/internal/domain/config"
 	"twitter-clone/internal/domain/twitter"
 
 	"github.com/gorilla/mux"
@@ -33,8 +34,8 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func NewWebSocketServer(cache cache.Cache) *WebSocketServer {
-	commonAddress := "" // TODO config check
+func NewWebSocketServer(cache cache.Cache, config config.WSServerConfig) *WebSocketServer {
+	commonAddress := fmt.Sprintf("%s:%d", config.WSServerHost(), config.WSServerPort())
 	router := mux.NewRouter()
 	webSocketServer := &WebSocketServer{
 		clients: make(map[int64]*websocket.Conn),
@@ -43,6 +44,7 @@ func NewWebSocketServer(cache cache.Cache) *WebSocketServer {
 			Addr:    commonAddress, // Configurable port
 			Handler: router,
 		},
+		apiPath: config.WSServerAPIPath(),
 	}
 	webSocketServer.registerRoutes()
 	return webSocketServer
@@ -142,7 +144,8 @@ func (ws *WebSocketServer) checkSetFollowers(ctx context.Context, userID int64) 
 	// ok, right now I don't have enough time, but it should be implemented a
 	// API connector using interfaces and under the hood it should request everything
 	// rn it will be pure requests, I hope i'll hv time soon
-	if req, err = http.NewRequestWithContext(ctx, "GET", ws.apiPath+"get_user?user="+strconv.FormatInt(userID, 10), nil); err != nil {
+	userPath := fmt.Sprintf("%s/api/v1/get_user?user=%d", ws.apiPath, userID)
+	if req, err = http.NewRequestWithContext(ctx, "GET", userPath, nil); err != nil {
 		return fmt.Errorf("error creating request: %v", err)
 	}
 	if resp, err = http.DefaultClient.Do(req); err != nil {
@@ -158,7 +161,8 @@ func (ws *WebSocketServer) checkSetFollowers(ctx context.Context, userID int64) 
 		return fmt.Errorf("invalid user ID")
 	}
 
-	if req, err = http.NewRequestWithContext(ctx, "GET", ws.apiPath+"followers?user="+strconv.FormatInt(user.ID, 10), nil); err != nil {
+	followersPath := fmt.Sprintf("%s/api/v1/followers?user=%d", ws.apiPath, user.ID)
+	if req, err = http.NewRequestWithContext(ctx, "GET", followersPath, nil); err != nil {
 		return fmt.Errorf("error creating request: %v", err)
 	}
 	if resp, err = http.DefaultClient.Do(req); err != nil {

@@ -9,13 +9,16 @@ import (
 )
 
 type YamlConfig struct {
-	API API `yaml:"api"`
+	API API `yaml:"api,omitempty"`
 
 	// database
-	Database Database `yaml:"database"`
+	Database Database `yaml:"database,omitempty"`
 
 	// cache
-	Cache CacheConfig `yaml:"cache"`
+	Cache CacheConfig `yaml:"cache,omitempty"`
+
+	// wss
+	WSS WSSConfig `yaml:"wss,omitempty"`
 }
 
 type API struct {
@@ -39,6 +42,12 @@ type CacheConfig struct {
 	MaxTweets2Keep            int    `yaml:"max_tweets_to_keep"`
 	TweetExpireTimeMinutes    int    `yaml:"tweet_expire_time_minutes"`
 	UserFeedExpireTimeMinutes int    `yaml:"user_feed_expire_time_minutes"`
+}
+
+type WSSConfig struct {
+	Port int    `yaml:"port"`
+	Host string `yaml:"host"`
+	API  string `yaml:"api"`
 }
 
 func NewYamlConfig(configFilePath string) (*YamlConfig, error) {
@@ -78,11 +87,10 @@ func (c *YamlConfig) Host() string {
 	return c.API.Host
 }
 
-// /////////////////////////////////
-//
+///////////////////////////////////
 //	Database
-//
-// /////////////////////////////////
+///////////////////////////////////
+
 func (c *YamlConfig) DatabasePath() string {
 	return c.Database.Path
 }
@@ -105,11 +113,9 @@ func (c *YamlConfig) DatabaseUser() string {
 	return c.Database.User
 }
 
-// /////////////////////////////////
-//
+///////////////////////////////////
 //	Cache Config
-//
-// /////////////////////////////////
+///////////////////////////////////
 
 func (c *YamlConfig) CacheAddress() string {
 	return c.Cache.Address
@@ -128,4 +134,18 @@ func (c *YamlConfig) TweetExpireTimeMinutes() int {
 }
 func (c *YamlConfig) UserFeedExpireTimeMinutes() int {
 	return c.Cache.UserFeedExpireTimeMinutes
+}
+
+///////////////////////////////////
+//	WSS Config
+///////////////////////////////////
+
+func (c *YamlConfig) WSServerHost() string {
+	return c.WSS.Host
+}
+func (c *YamlConfig) WSServerPort() int {
+	return c.WSS.Port
+}
+func (c *YamlConfig) WSServerAPIPath() string {
+	return c.WSS.API
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"twitter-clone/internal/config"
-	"twitter-clone/internal/server"
+	server "twitter-clone/internal/server/api"
 
 	"net/http"
 	"os"
