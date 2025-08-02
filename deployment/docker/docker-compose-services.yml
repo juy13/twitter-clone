@@ -1,0 +1,118 @@
+version: '3.8'
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 5m
+      max-file: "2"
+
+volumes:
+  angie-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/data/angie/logs
+      o: bind
+  angie-host:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/data/angie/host
+      o: bind
+  postgres-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/data/postgres
+      o: bind
+  redis-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/data/redis
+      o: bind
+
+
+services:
+  # actually it's a better fork of nginx
+  angie:
+    init: true
+    image: docker.angie.software/angie:1.10.0-debian
+    networks:
+      - twitter-clone-net
+    volumes:
+      - angie-data:/var/log/angie
+      - angie-host:/etc/angie
+    deploy:
+      resources:
+        limits:
+          memory: 500M
+          cpus: "0.5"
+    ports:
+      - 8002:8002
+      - 8001:8001
+    
+  postgres:
+    init: true
+    image: postgres:17
+    container_name: postgres_db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: twitterdb
+    # some limits
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    networks:
+      - twitter-clone-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    init: true
+    image: redis:7.4.5-alpine
+    container_name: redis
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 0.5Gb
+    restart: always
+    <<: *logging
+    ports:
+      - "127.0.0.1:6379:6379"
+    volumes:
+      - redis-data:/data
+    environment:
+      REDIS_PASSWORD: mypassword
+      REDIS_DATABASES: 1
+      REDIS_MAXMEMORY: 50mb
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - twitter-clone-net
+
+# UI interface for Redis
+  redisinsight:
+    init: true
+    image: redis/redisinsight:latest
+    ports:
+      - "127.0.0.1:8003:5540"
+    volumes:
+      - redis-data:/db
+    networks:
+      - twitter-clone-net
+    
+networks:
+  twitter-clone-net: 
+    external: true
