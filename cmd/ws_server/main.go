@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"twitter-clone/internal/app/api"
 	"twitter-clone/internal/config"
 	wsserver "twitter-clone/internal/server/ws_server"
 
@@ -67,7 +68,8 @@ func runWebSocketServer(cCtx *cli.Context) error {
 	}
 
 	cache := redis_cache.NewRedisCache(configYaml)
-	websocketServer := wsserver.NewWebSocketServer(cache, configYaml)
+	apiService := api.NewAPIService(configYaml.WSServerAPIPath())
+	websocketServer := wsserver.NewWebSocketServer(cache, configYaml, apiService)
 
 	go func() {
 		log.Info().Msgf("Starting web socket server: %s \n", websocketServer.Info())

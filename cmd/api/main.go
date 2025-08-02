@@ -11,7 +11,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"twitter-clone/internal/app"
+	app "twitter-clone/internal/app/twitter"
 
 	redis_cache "twitter-clone/internal/cache"
 

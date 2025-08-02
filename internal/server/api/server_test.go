@@ -9,7 +9,7 @@ import (
 	"testing"
 	"twitter-clone/internal/domain/twitter"
 
-	"twitter-clone/internal/app"
+	app "twitter-clone/internal/app/twitter"
 
 	"github.com/stretchr/testify/assert"
 )

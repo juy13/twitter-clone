@@ -43,8 +43,9 @@ func (s *ServerV1) registerRoutes() {
 
 	// Tweets
 	router.HandleFunc("/api/v1/tweet", s.newTweet).Methods("POST")
-	router.HandleFunc("/api/v1/tweets", s.returnTweets).Methods("GET")    // not implemented yet
-	router.HandleFunc("/api/v1/tweet_by_user", s.getTweet).Methods("GET") // not implemented yet
+	router.HandleFunc("/api/v1/tweets", s.returnTweets).Methods("GET")
+	router.HandleFunc("/api/v1/get_tweet", s.getTweet).Methods("GET")
+	router.HandleFunc("/api/v1/tweet_by_user", s.getTweetByUser).Methods("GET") // not implemented yet
 
 	// Follow
 	// Maybe it's better to unite them,
@@ -229,12 +230,59 @@ func (s *ServerV1) newTweet(w http.ResponseWriter, r *http.Request) {
 
 func (s *ServerV1) returnTweets(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	s.tweeterService.GetTweet(ctx, 0)
+	var err error
+	var user int64
+	var tweets []twitter.Tweet
+	if user, err = s.extractAndCheckUser(ctx, r, "user"); err != nil {
+		result := map[string]string{
+			"error": err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound) // even if incorrect user return not found
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if tweets, err = s.tweeterService.GetTimeline(ctx, user); err != nil {
+		result := map[string]string{
+			"error": err.Error(),
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusNotFound) // even if incorrect user return not found
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(tweets)
+}
+
+func (s *ServerV1) getTweetByUser(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	s.tweeterService.GetUsersTweets(ctx, 0)
 }
 
 func (s *ServerV1) getTweet(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	s.tweeterService.GetUsersTweets(ctx, 0)
+	var tweetStr string
+	var tweetID int64
+	var err error
+	var tweet twitter.Tweet
+	if tweetStr = r.URL.Query().Get("tweet"); tweetStr == "" {
+		return // TODO return error
+	}
+	if tweetID, err = strconv.ParseInt(tweetStr, 10, 64); err != nil {
+		return // TODO return error
+	}
+
+	if tweet, err = s.tweeterService.GetTweet(ctx, tweetID); err != nil {
+		return // TODO return error
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(tweet)
+
 }
 
 /////////////////////////////////////////////////////

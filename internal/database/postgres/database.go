@@ -84,7 +84,8 @@ func (p *PostgresDB) GetTimeline(ctx context.Context, userID int64) ([]twitter.T
         JOIN follows f ON t.user_id = f.followed_id
         WHERE f.follower_id = $1
         ORDER BY t.created_at DESC
-    `
+		LIMIT 50 
+    ` // TODO add LIMIT to config or as a param sent
 	err := p.db.SelectContext(ctx, &tweets, query, userID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get timeline: %w", err)

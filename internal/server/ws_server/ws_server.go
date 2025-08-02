@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"twitter-clone/internal/domain/api"
 	"twitter-clone/internal/domain/cache"
 	"twitter-clone/internal/domain/config"
 	"twitter-clone/internal/domain/twitter"
@@ -22,8 +23,7 @@ type WebSocketServer struct {
 
 	server *http.Server
 
-	// TODO move it to config
-	apiPath string
+	api api.API
 }
 
 var upgrader = websocket.Upgrader{
@@ -34,7 +34,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func NewWebSocketServer(cache cache.Cache, config config.WSServerConfig) *WebSocketServer {
+func NewWebSocketServer(cache cache.Cache, config config.WSServerConfig, api api.API) *WebSocketServer {
 	commonAddress := fmt.Sprintf("%s:%d", config.WSServerHost(), config.WSServerPort())
 	router := mux.NewRouter()
 	webSocketServer := &WebSocketServer{
@@ -44,7 +44,7 @@ func NewWebSocketServer(cache cache.Cache, config config.WSServerConfig) *WebSoc
 			Addr:    commonAddress, // Configurable port
 			Handler: router,
 		},
-		apiPath: config.WSServerAPIPath(),
+		api: api,
 	}
 	webSocketServer.registerRoutes()
 	return webSocketServer
@@ -80,7 +80,6 @@ func (ws *WebSocketServer) handleConnections(w http.ResponseWriter, r *http.Requ
 		log.Printf("Upgrade error: %v", err)
 		return
 	}
-	defer conn.Close()
 
 	if userStr = r.URL.Query().Get("user_id"); userStr == "" {
 		return
@@ -90,12 +89,12 @@ func (ws *WebSocketServer) handleConnections(w http.ResponseWriter, r *http.Requ
 	}
 
 	// firstly we have correctly set user, then -- add to the table
-	ws.handleNewUser(ctx, userID)
+	ws.handleNewUser(ctx, userID, conn)
 	// I forgot how to store it not in a memory map
 	ws.clients[userID] = conn
 }
 
-func (ws *WebSocketServer) handleNewUser(ctx context.Context, userID int64) {
+func (ws *WebSocketServer) handleNewUser(ctx context.Context, userID int64, conn *websocket.Conn) {
 	var err error
 	var exists bool
 	var timeline []twitter.Tweet
@@ -111,7 +110,7 @@ func (ws *WebSocketServer) handleNewUser(ctx context.Context, userID int64) {
 	}
 	if !exists {
 		// API request to fetch tweets and store them in cache
-		if timeline, err = ws.getTimeline(ctx, userID); err != nil {
+		if timeline, err = ws.getAPITimeline(ctx, userID); err != nil {
 			log.Printf("Error fetching timeline: %v", err)
 			return
 		}
@@ -120,62 +119,72 @@ func (ws *WebSocketServer) handleNewUser(ctx context.Context, userID int64) {
 			return
 		}
 	}
+	var timelineFromCache []int64
+	if timelineFromCache, err = ws.cache.GetUserTimeline(ctx, userID, 10); err != nil { // TODO set limit config
+		log.Printf("Error fetching timeline from cache: %v", err)
+		return
+	}
+	tweets := make([]twitter.Tweet, 0, len(timelineFromCache))
+	for _, i := range timelineFromCache {
+		var tweet twitter.Tweet
+		if tweet, err = ws.cache.GetTweet(ctx, i); err != nil {
+			// fallback on API get tweet
+			if tweet, err = ws.api.GetTweet(ctx, i); err != nil { // TODO maybe I'l lagging now but check it
+				log.Printf("Error fetching tweet from cache: %v", err)
+			} else {
+				tweets = append(tweets, tweet)
+			}
+			continue
+		}
+		tweets = append(tweets, tweet)
+	}
+	var tweetMarshalled []byte
+	tweetMarshalled, _ = json.Marshal(tweets)
+	err = conn.WriteMessage(websocket.TextMessage, tweetMarshalled)
+	if err != nil {
+		log.Printf("Error writing message to client: %v", err)
+	}
 
 	// write to user it's timeline back
 	// err = client.WriteMessage(websocket.TextMessage, timeline)
 }
 
-func (ws *WebSocketServer) getTimeline(ctx context.Context, userID int64) ([]twitter.Tweet, error) {
-	panic("not implemented")
+func (ws *WebSocketServer) getAPITimeline(ctx context.Context, userID int64) ([]twitter.Tweet, error) {
+	var err error
+	var tweets []twitter.Tweet
+
+	if tweets, err = ws.api.GetTimeline(ctx, userID); err != nil {
+		return nil, err
+	}
+	return tweets, nil
 }
 
 func (ws *WebSocketServer) storeTimeline(ctx context.Context, userID int64, timeline []twitter.Tweet) error {
-	panic("not implemented")
+	var err error
+
+	if err = ws.cache.StoreTimeline(ctx, userID, timeline); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (ws *WebSocketServer) checkSetFollowers(ctx context.Context, userID int64) error {
 	var (
 		err       error
-		req       *http.Request
-		resp      *http.Response
 		user      twitter.User
 		followers []twitter.User
 	)
 	// ok, right now I don't have enough time, but it should be implemented a
 	// API connector using interfaces and under the hood it should request everything
 	// rn it will be pure requests, I hope i'll hv time soon
-	userPath := fmt.Sprintf("%s/api/v1/get_user?user=%d", ws.apiPath, userID)
-	if req, err = http.NewRequestWithContext(ctx, "GET", userPath, nil); err != nil {
-		return fmt.Errorf("error creating request: %v", err)
-	}
-	if resp, err = http.DefaultClient.Do(req); err != nil {
-		log.Printf("Error making request: %v", err)
+	// upd: ok i just did it, ncccc
+
+	if user, err = ws.api.GetUser(ctx, userID); err != nil {
 		return err
 	}
-	defer func() {
-		_ = resp.Body.Close() // linter issue
-	}()
-	_ = json.NewDecoder(resp.Body).Decode(&user)
 
-	if user.ID == 0 {
-		return fmt.Errorf("invalid user ID")
-	}
-
-	followersPath := fmt.Sprintf("%s/api/v1/followers?user=%d", ws.apiPath, user.ID)
-	if req, err = http.NewRequestWithContext(ctx, "GET", followersPath, nil); err != nil {
-		return fmt.Errorf("error creating request: %v", err)
-	}
-	if resp, err = http.DefaultClient.Do(req); err != nil {
-		log.Printf("Error making request: %v", err)
+	if followers, err = ws.api.GetFollowers(ctx, user.ID); err != nil {
 		return err
-	}
-	defer func() {
-		_ = resp.Body.Close() // linter issue
-	}()
-	_ = json.NewDecoder(resp.Body).Decode(&followers)
-
-	if len(followers) == 0 {
-		return fmt.Errorf("no followers found for user ID %d", userID)
 	}
 
 	if err = ws.cache.SetFollowers(ctx, userID, followers); err != nil {

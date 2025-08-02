@@ -35,7 +35,12 @@ func (tw *TwitterService) NewTweet(ctx context.Context, tweetData twitter.Tweet)
 }
 
 func (tw *TwitterService) GetTweet(ctx context.Context, id int64) (twitter.Tweet, error) {
-	panic("not implemented")
+	var tweet twitter.Tweet
+	var err error
+	if tweet, err = tw.db.GetTweet(ctx, id); err != nil {
+		return tweet, fmt.Errorf("failed to get tweet from db: %w", err)
+	}
+	return tweet, nil
 }
 
 func (tw *TwitterService) GetUsersTweets(ctx context.Context, userId int64) ([]twitter.Tweet, error) {
@@ -43,7 +48,13 @@ func (tw *TwitterService) GetUsersTweets(ctx context.Context, userId int64) ([]t
 }
 
 func (tw *TwitterService) GetTimeline(ctx context.Context, userId int64) ([]twitter.Tweet, error) {
-	panic("not implemented")
+	var err error
+	var tweets []twitter.Tweet
+
+	if tweets, err = tw.db.GetTimeline(ctx, userId); err != nil {
+		return nil, fmt.Errorf("failed to get users tweets from db: %w", err)
+	}
+	return tweets, nil
 }
 
 // Follow part

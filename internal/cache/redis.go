@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 	"twitter-clone/internal/domain/config"
 	"twitter-clone/internal/domain/twitter"
@@ -78,8 +79,23 @@ func (c *RedisCache) PushToUserFeed(ctx context.Context, userID, tweetID int64) 
 //	Timeline / Feed
 ////////////////////////////////////
 
-func (c *RedisCache) GetUserTimeline(ctx context.Context, userID int64, limit int) ([]int, error) {
-	return nil, nil
+func (c *RedisCache) GetUserTimeline(ctx context.Context, userID int64, limit int) ([]int64, error) {
+	key := fmt.Sprintf("timeline:%d", userID)
+	values, err := c.client.LRange(ctx, key, 0, int64(limit)-1).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]int64, 0, len(values))
+	for _, v := range values {
+		id, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse int64 from '%s': %w", v, err)
+		}
+		result = append(result, id)
+	}
+
+	return result, nil
 }
 
 func (c *RedisCache) CheckUserTimelineExists(ctx context.Context, userID int64) (bool, error) {
@@ -91,6 +107,21 @@ func (c *RedisCache) CheckUserTimelineExists(ctx context.Context, userID int64) 
 	}
 	// check it i'm not sure
 	return exists != 0, nil
+}
+
+func (c *RedisCache) StoreTimeline(ctx context.Context, userID int64, tweets []twitter.Tweet) error {
+	pipe := c.client.TxPipeline()
+	feedKey := fmt.Sprintf("timeline:%d", userID)
+	for _, tweet := range tweets {
+		pipe.LPush(ctx, feedKey, tweet.ID)
+		pipe.LTrim(ctx, feedKey, 0, int64(c.maxTweetsTimelineItems))
+		pipe.Expire(ctx, feedKey, c.tweetTimelineExpireTime*time.Minute)
+	}
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to push tweets to users %d timeline: %v", userID, err)
+	}
+	return nil
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
