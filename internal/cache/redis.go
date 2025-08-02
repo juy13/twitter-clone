@@ -138,7 +138,7 @@ func (c *RedisCache) PushToTweetChannel(ctx context.Context, channelTweet twitte
 	}
 	pipe := c.client.TxPipeline()
 
-	pipe.Publish(ctx, "tweets:channel", data)
+	pipe.Publish(ctx, "workers:channel", data)
 	_, err = pipe.Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to public tweet: %v, %w", channelTweet.Tweet.ID, err)
@@ -192,28 +192,41 @@ func (c *RedisCache) SubscribeToTweetsChannel(ctx context.Context, channel strin
 }
 
 // Follow part
+// TODO fro better optimization keep just followers ID
+func (c *RedisCache) GetFollowers(ctx context.Context, userID int64) ([]int64, error) {
+	key := fmt.Sprintf("followers:%d", userID)
+	values, err := c.client.LRange(ctx, key, 0, -1).Result()
+	if err != nil {
+		return nil, err
+	}
 
-func (c *RedisCache) GetFollowers(ctx context.Context, userID int64) ([]twitter.User, error) {
-	var followers []twitter.User
-	data, err := c.client.Get(ctx, fmt.Sprintf("followers:%d", userID)).Result()
-	if err != nil && err != redis.Nil {
-		return nil, fmt.Errorf("failed to get followers from cache: %w", err)
+	result := make([]int64, len(values))
+	for i, v := range values {
+		id, err := strconv.ParseInt(v, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse int64 from '%s': %w", v, err)
+		}
+		result[len(values)-i-1] = id
 	}
-	if err = json.Unmarshal([]byte(data), &followers); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal followers from cache: %w", err)
-	}
-	return followers, nil
+	return result, nil
 }
 
 func (c *RedisCache) SetFollowers(ctx context.Context, userID int64, followers []twitter.User) error {
 	// or maybe we just have to store only ids?
-	followersJSON, err := json.Marshal(followers)
-	if err != nil {
-		return fmt.Errorf("failed to marshal followers: %w", err)
+	// yes so, I'll put indexes in list
+	var err error
+	pipe := c.client.TxPipeline()
+	followerKey := fmt.Sprintf("followers:%d", userID)
+	for _, follower := range followers {
+		pipe.LPush(ctx, followerKey, follower.ID)
 	}
-	err = c.client.Set(ctx, fmt.Sprintf("followers:%d", userID), followersJSON, 24*time.Hour).Err() // TODO set to the config expire time for the user
+	_, err = pipe.Exec(ctx)
 	if err != nil {
-		return fmt.Errorf("failed to set followers in cache: %w", err)
+		return fmt.Errorf("failed to execute pipeline: %w", err)
 	}
 	return nil
+}
+
+func (c *RedisCache) FollowUser(ctx context.Context, follow twitter.Follow) error {
+	panic("not implemented")
 }

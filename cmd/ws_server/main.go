@@ -71,6 +71,8 @@ func runWebSocketServer(cCtx *cli.Context) error {
 	apiService := api.NewAPIService(configYaml.WSServerAPIPath())
 	websocketServer := wsserver.NewWebSocketServer(cache, configYaml, apiService)
 
+	go websocketServer.HandleTweets(signalCtx)
+
 	go func() {
 		log.Info().Msgf("Starting web socket server: %s \n", websocketServer.Info())
 		if err := websocketServer.Start(); err != nil && err != http.ErrServerClosed {

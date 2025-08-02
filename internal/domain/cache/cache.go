@@ -25,6 +25,7 @@ type Cache interface {
 	SubscribeToTweetsChannel(ctx context.Context, channel string) (<-chan string, error)
 
 	// Follower
-	GetFollowers(ctx context.Context, userID int64) ([]twitter.User, error)
+	GetFollowers(ctx context.Context, userID int64) ([]int64, error)
 	SetFollowers(ctx context.Context, userID int64, followers []twitter.User) error
+	FollowUser(ctx context.Context, follow twitter.Follow) error
 }

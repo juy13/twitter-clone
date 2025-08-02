@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"twitter-clone/internal/domain/api"
 	"twitter-clone/internal/domain/cache"
@@ -19,7 +20,6 @@ import (
 type WebSocketServer struct {
 	clients map[int64]*websocket.Conn
 	cache   cache.Cache
-	ctx     context.Context
 
 	server *http.Server
 
@@ -159,6 +159,12 @@ func (ws *WebSocketServer) getAPITimeline(ctx context.Context, userID int64) ([]
 func (ws *WebSocketServer) storeTimeline(ctx context.Context, userID int64, timeline []twitter.Tweet) error {
 	var err error
 
+	// the problem is that I got it on reverse
+	// new tweets are first, old one are last
+	// so on insert it inserts only first by the time
+	sort.Slice(timeline, func(i, j int) bool {
+		return timeline[j].CreatedAt.After(timeline[i].CreatedAt)
+	})
 	if err = ws.cache.StoreTimeline(ctx, userID, timeline); err != nil {
 		return err
 	}
@@ -192,7 +198,7 @@ func (ws *WebSocketServer) checkSetFollowers(ctx context.Context, userID int64) 
 }
 
 func (ws *WebSocketServer) HandleTweets(ctx context.Context) {
-	pubsub, err := ws.cache.SubscribeToTweetsChannel(ws.ctx, "tweets")
+	pubsub, err := ws.cache.SubscribeToTweetsChannel(ctx, "workers:channel")
 	if err != nil {
 		log.Printf("Error subscribing to tweets channel: %v", err)
 		return
@@ -217,7 +223,7 @@ func (ws *WebSocketServer) HandleTweets(ctx context.Context) {
 					delete(ws.clients, tweet.UserID)
 				}
 			} else {
-				log.Printf("User %d is disconnected", tweet.UserID)
+				log.Printf("User %d is not connected", tweet.UserID)
 			}
 		}
 	}

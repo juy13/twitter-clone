@@ -65,6 +65,9 @@ func (tw *TwitterService) FollowUser(ctx context.Context, follow twitter.Follow)
 	if err = tw.db.FollowUser(ctx, follow); err != nil {
 		return fmt.Errorf("failed to follow user: %w", err)
 	}
+	if err = tw.cache.FollowUser(ctx, follow); err != nil {
+		return fmt.Errorf("failed to follow user in cache: %w", err)
+	}
 	return nil
 }
 
@@ -76,7 +79,7 @@ func (tw *TwitterService) Followers(ctx context.Context, userId int64) ([]twitte
 	if followers, err = tw.db.Followers(ctx, userId); err != nil {
 		return []twitter.User{}, fmt.Errorf("failed to get followers: %w", err)
 	}
-	// populate them to cache
+	// populate them to cache (?)
 	return followers, nil
 }
 
