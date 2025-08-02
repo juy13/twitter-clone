@@ -18,6 +18,7 @@ type Cache interface {
 	GetUserTimeline(ctx context.Context, userID int64, limit int) ([]int64, error)
 	CheckUserTimelineExists(ctx context.Context, userID int64) (bool, error)
 	StoreTimeline(ctx context.Context, userID int64, timeline []twitter.Tweet) error
+	PushToTweetChannel(ctx context.Context, channelTweet twitter.ChannelTweet) error
 
 	// this part should be moved to pub/sub service but no time rn
 	// subscribe to tweets channel

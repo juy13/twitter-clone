@@ -129,7 +129,7 @@ func (ws *WebSocketServer) handleNewUser(ctx context.Context, userID int64, conn
 		var tweet twitter.Tweet
 		if tweet, err = ws.cache.GetTweet(ctx, i); err != nil {
 			// fallback on API get tweet
-			if tweet, err = ws.api.GetTweet(ctx, i); err != nil { // TODO maybe I'l lagging now but check it
+			if tweet, err = ws.api.GetTweet(ctx, i); err != nil { // maybe I'l lagging now but check it // checked, it's ok
 				log.Printf("Error fetching tweet from cache: %v", err)
 			} else {
 				tweets = append(tweets, tweet)
@@ -144,9 +144,6 @@ func (ws *WebSocketServer) handleNewUser(ctx context.Context, userID int64, conn
 	if err != nil {
 		log.Printf("Error writing message to client: %v", err)
 	}
-
-	// write to user it's timeline back
-	// err = client.WriteMessage(websocket.TextMessage, timeline)
 }
 
 func (ws *WebSocketServer) getAPITimeline(ctx context.Context, userID int64) ([]twitter.Tweet, error) {

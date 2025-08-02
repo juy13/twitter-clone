@@ -59,6 +59,8 @@ func (w *Worker) ProcessTweet(ctx context.Context, tweet twitter.Tweet) error {
 		return fmt.Errorf("failed to get followers for user %v: %v", tweet.UserID, err)
 	}
 
+	// here we have to check the amount of follower & active followers
+	// we don't need to send to all followers at once, maybe better to keep it on client
 	for _, followerID := range followers {
 		// do it as a batch to reduce a time!!!
 		if err := w.cache.PushToUserFeed(ctx, followerID.ID, tweet.ID); err != nil {
@@ -71,5 +73,11 @@ func (w *Worker) ProcessTweet(ctx context.Context, tweet twitter.Tweet) error {
 }
 
 func (w *Worker) sendToWebSocket(ctx context.Context, user twitter.User, tweet twitter.Tweet) {
-	panic("not implemented")
+	channelTweet := twitter.ChannelTweet{
+		Tweet:  tweet,
+		UserID: user.ID,
+	}
+	if err := w.cache.PushToTweetChannel(ctx, channelTweet); err != nil {
+		fmt.Println("Failed to push tweet to channel:", err)
+	}
 }

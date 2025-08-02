@@ -67,11 +67,18 @@ func (c *RedisCache) PushTweet(ctx context.Context, tweet twitter.Tweet) error {
 }
 
 func (c *RedisCache) PushToUserFeed(ctx context.Context, userID, tweetID int64) error {
+	var err error
 	pipe := c.client.TxPipeline()
 	feedKey := fmt.Sprintf("timeline:%d", userID)
 	pipe.LPush(ctx, feedKey, tweetID)
 	pipe.LTrim(ctx, feedKey, 0, int64(c.maxTweetsTimelineItems))
 	pipe.Expire(ctx, feedKey, c.tweetTimelineExpireTime*time.Minute)
+
+	///// did I lost it? yep I did
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to push tweet %v to global list: %v", tweetID, err)
+	}
 	return nil
 }
 
@@ -81,20 +88,19 @@ func (c *RedisCache) PushToUserFeed(ctx context.Context, userID, tweetID int64) 
 
 func (c *RedisCache) GetUserTimeline(ctx context.Context, userID int64, limit int) ([]int64, error) {
 	key := fmt.Sprintf("timeline:%d", userID)
-	values, err := c.client.LRange(ctx, key, 0, int64(limit)-1).Result()
+	values, err := c.client.LRange(ctx, key, 0, int64(limit)-1).Result() // TODO here limit should be from config & related to maxTweetsTimelineItems
 	if err != nil {
 		return nil, err
 	}
 
-	result := make([]int64, 0, len(values))
-	for _, v := range values {
+	result := make([]int64, len(values))
+	for i, v := range values {
 		id, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse int64 from '%s': %w", v, err)
 		}
-		result = append(result, id)
+		result[len(values)-i-1] = id
 	}
-
 	return result, nil
 }
 
@@ -120,6 +126,22 @@ func (c *RedisCache) StoreTimeline(ctx context.Context, userID int64, tweets []t
 	_, err := pipe.Exec(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to push tweets to users %d timeline: %v", userID, err)
+	}
+	return nil
+}
+
+func (c *RedisCache) PushToTweetChannel(ctx context.Context, channelTweet twitter.ChannelTweet) error {
+	var err error
+	data, err := json.Marshal(channelTweet)
+	if err != nil {
+		return fmt.Errorf("failed to marshal tweet %v: %v", channelTweet.Tweet.ID, err)
+	}
+	pipe := c.client.TxPipeline()
+
+	pipe.Publish(ctx, "tweets:channel", data)
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to public tweet: %v, %w", channelTweet.Tweet.ID, err)
 	}
 	return nil
 }
@@ -173,9 +195,12 @@ func (c *RedisCache) SubscribeToTweetsChannel(ctx context.Context, channel strin
 
 func (c *RedisCache) GetFollowers(ctx context.Context, userID int64) ([]twitter.User, error) {
 	var followers []twitter.User
-	err := c.client.Get(ctx, fmt.Sprintf("followers:%d", userID)).Scan(&followers)
+	data, err := c.client.Get(ctx, fmt.Sprintf("followers:%d", userID)).Result()
 	if err != nil && err != redis.Nil {
 		return nil, fmt.Errorf("failed to get followers from cache: %w", err)
+	}
+	if err = json.Unmarshal([]byte(data), &followers); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal followers from cache: %w", err)
 	}
 	return followers, nil
 }

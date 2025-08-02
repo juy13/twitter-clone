@@ -46,10 +46,9 @@ func (a *APIService) GetFollowers(ctx context.Context, userID int64) ([]twitter.
 		err       error
 		req       *http.Request
 		resp      *http.Response
-		user      twitter.User
 		followers []twitter.User
 	)
-	followersPath := fmt.Sprintf("%s/api/v1/followers?user=%d", a.path, user.ID)
+	followersPath := fmt.Sprintf("%s/api/v1/followers?user=%d", a.path, userID)
 	if req, err = http.NewRequestWithContext(ctx, "GET", followersPath, nil); err != nil {
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
