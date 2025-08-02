@@ -144,6 +144,17 @@ func (ws *WebSocketServer) handleNewUser(ctx context.Context, userID int64, conn
 	if err != nil {
 		log.Printf("Error writing message to client: %v", err)
 	}
+
+	// Keep reading to keep it alive
+	go func() {
+		for {
+			_, _, err := conn.ReadMessage()
+			if err != nil {
+				log.Printf("Read error for user %d: %v", userID, err)
+				break
+			}
+		}
+	}()
 }
 
 func (ws *WebSocketServer) getAPITimeline(ctx context.Context, userID int64) ([]twitter.Tweet, error) {

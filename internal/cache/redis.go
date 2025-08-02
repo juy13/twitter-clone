@@ -211,12 +211,14 @@ func (c *RedisCache) GetFollowers(ctx context.Context, userID int64) ([]int64, e
 	return result, nil
 }
 
+// It overwrites the followers list!!!
 func (c *RedisCache) SetFollowers(ctx context.Context, userID int64, followers []twitter.User) error {
 	// or maybe we just have to store only ids?
 	// yes so, I'll put indexes in list
 	var err error
 	pipe := c.client.TxPipeline()
 	followerKey := fmt.Sprintf("followers:%d", userID)
+	pipe.Del(ctx, followerKey)
 	for _, follower := range followers {
 		pipe.LPush(ctx, followerKey, follower.ID)
 	}
@@ -228,5 +230,13 @@ func (c *RedisCache) SetFollowers(ctx context.Context, userID int64, followers [
 }
 
 func (c *RedisCache) FollowUser(ctx context.Context, follow twitter.Follow) error {
-	panic("not implemented")
+	var err error
+	pipe := c.client.TxPipeline()
+	followerKey := fmt.Sprintf("followers:%d", follow.FolloweeID)
+	pipe.LPush(ctx, followerKey, follow.FollowerID)
+	_, err = pipe.Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to execute pipeline: %w", err)
+	}
+	return nil
 }

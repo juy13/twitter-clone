@@ -17,14 +17,14 @@ def create_user(username):
 
 async def listen_websocket(user_id):
     url = WS_URL.format(user_id=user_id)
-    async with websockets.connect(url) as websocket:
+    async with websockets.connect(url, ping_interval=20, ping_timeout=10) as websocket:
         print(f"[+] Connected to WebSocket as user {user_id}")
         try:
             while True:
                 message = await websocket.recv()
                 print(f"[WS] {message}")
-        except websockets.ConnectionClosed:
-            print("[!] WebSocket closed")
+        except websockets.ConnectionClosed as e:
+            print(f"[!] WebSocket closed: {e.code} {e.reason}")
 
 def post_tweet(user_id, content):
     payload = {"content": content}
