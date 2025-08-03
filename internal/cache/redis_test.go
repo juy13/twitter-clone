@@ -27,7 +27,9 @@ var mockConfig MockCacheConfig
 
 func TestPushTweet(t *testing.T) {
 	db, mock := redismock.NewClientMock()
-	defer db.Close()
+	defer func() {
+		_ = db.Close() // lint
+	}()
 
 	c := NewRedisCache(&mockConfig)
 	c.client = db
@@ -59,7 +61,9 @@ func TestPushTweet(t *testing.T) {
 // PushToUserFeed(ctx context.Context, userID, tweetID int64) error
 func TestPushToUserFeed(t *testing.T) {
 	db, mock := redismock.NewClientMock()
-	defer db.Close()
+	defer func() {
+		_ = db.Close() // lint
+	}()
 
 	c := NewRedisCache(&mockConfig)
 	c.client = db
@@ -83,7 +87,9 @@ func TestPushToUserFeed(t *testing.T) {
 // GetTweet(ctx context.Context, tweetID int64) (twitter.Tweet, error)
 func TestGetTweet(t *testing.T) {
 	db, mock := redismock.NewClientMock()
-	defer db.Close()
+	defer func() {
+		_ = db.Close() // lint
+	}()
 
 	cache := NewRedisCache(&mockConfig)
 	cache.client = db
@@ -112,7 +118,9 @@ func TestGetTweet(t *testing.T) {
 // GetFollowers(ctx context.Context, userID int64) ([]int64, error)
 func TestGetFollowers(t *testing.T) {
 	db, mock := redismock.NewClientMock()
-	defer db.Close()
+	defer func() {
+		_ = db.Close() // lint
+	}()
 
 	cache := NewRedisCache(&mockConfig)
 	cache.client = db
@@ -134,7 +142,9 @@ func TestGetFollowers(t *testing.T) {
 // SetFollowers(ctx context.Context, userID int64, followers []twitter.User) error
 func TestSetFollowers(t *testing.T) {
 	db, mock := redismock.NewClientMock()
-	defer db.Close()
+	defer func() {
+		_ = db.Close() // lint
+	}()
 
 	cache := NewRedisCache(&mockConfig)
 	cache.client = db
@@ -164,7 +174,9 @@ func TestSetFollowers(t *testing.T) {
 // FollowUser(ctx context.Context, follow twitter.Follow) error
 func TestFollowUser(t *testing.T) {
 	db, mock := redismock.NewClientMock()
-	defer db.Close()
+	defer func() {
+		_ = db.Close() // lint
+	}()
 
 	cache := NewRedisCache(&mockConfig)
 	cache.client = db
@@ -190,7 +202,9 @@ func TestFollowUser(t *testing.T) {
 // GetUserTimeline(ctx context.Context, userID int64, limit int) ([]int64, error)
 func TestGetUserTimeline(t *testing.T) {
 	db, mock := redismock.NewClientMock()
-	defer db.Close()
+	defer func() {
+		_ = db.Close() // lint
+	}()
 
 	cache := NewRedisCache(&mockConfig)
 	cache.client = db
@@ -213,7 +227,9 @@ func TestGetUserTimeline(t *testing.T) {
 // CheckUserTimelineExists(ctx context.Context, userID int64) (bool, error)
 func TestCheckUserTimelineExists(t *testing.T) {
 	db, mock := redismock.NewClientMock()
-	defer db.Close()
+	defer func() {
+		_ = db.Close() // lint
+	}()
 
 	cache := NewRedisCache(&mockConfig)
 	cache.client = db
@@ -232,7 +248,9 @@ func TestCheckUserTimelineExists(t *testing.T) {
 // StoreTimeline(ctx context.Context, userID int64, timeline []twitter.Tweet) error
 func TestStoreTimeline(t *testing.T) {
 	db, mock := redismock.NewClientMock()
-	defer db.Close()
+	defer func() {
+		_ = db.Close() // lint
+	}()
 
 	cache := NewRedisCache(&mockConfig)
 	cache.client = db
