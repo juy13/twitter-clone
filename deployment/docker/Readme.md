@@ -39,3 +39,12 @@ docker compose -f docker-compose-services.yml down
 
 ## Security note
 To run application in production it's recommended to change all passwords from default ones.
+
+## Images
+There is CI job that builds images and pushes them to the registry.
+To pull the image, you can use the following commands:
+```sh
+docker pull ghcr.io/juy13/twitter-clone-api:v0.1
+docker pull ghcr.io/juy13/twitter-clone-ws_socket:v0.1
+docker pull ghcr.io/juy13/twitter-clone-worker:v0.1
+```
