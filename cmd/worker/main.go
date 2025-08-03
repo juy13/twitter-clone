@@ -15,7 +15,6 @@ import (
 	"github.com/urfave/cli/v2"
 
 	redis_cache "twitter-clone/internal/cache"
-	postgres_db "twitter-clone/internal/database/postgres"
 )
 
 // The idea is that worker will check the Redis global queue and on new item
@@ -56,7 +55,6 @@ func runWorker(cCtx *cli.Context) error {
 	var (
 		err        error
 		configYaml *config.YamlConfig
-		database   *postgres_db.PostgresDB
 	)
 
 	signalCtx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
@@ -67,12 +65,9 @@ func runWorker(cCtx *cli.Context) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	if database, err = postgres_db.NewPostgresDB(configYaml); err != nil {
-		return fmt.Errorf("failed to connect to database: %w", err)
-	}
 	cache := redis_cache.NewRedisCache(configYaml)
 
-	worker := worker.NewWorker(database, cache)
+	worker := worker.NewWorker(cache)
 	debugServer := metrics.NewMetricsServer(configYaml)
 
 	go func() {

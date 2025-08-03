@@ -1,0 +1,740 @@
+openapi: 3.0.3
+info:
+  title: Twitter clone
+  version: 1.0.0
+  contact: {}
+servers:
+- url: localhost:15001
+paths:
+  /api/v1/follow_user:
+    get:
+      summary: Follow user
+      description: Follow user
+      operationId: followUser
+      parameters:
+      - name: user
+        in: query
+        schema:
+          type: string
+          example: '1'
+      - name: followee
+        in: query
+        schema:
+          type: string
+          example: '18'
+      responses:
+        '200':
+          description: Follow user
+          headers:
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+                example: Content-Type
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+                example: GET, POST, OPTIONS
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: '*'
+            Content-Length:
+              schema:
+                type: string
+                example: '78'
+            Date:
+              schema:
+                type: string
+                example: Sat, 02 Aug 2025 21:03:32 GMT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created_at:
+                    type: string
+                    example: 2025-08-02T21:03:32.477767Z
+                  followee_id:
+                    type: number
+                    example: 18
+                  follower_id:
+                    type: number
+                    example: 1
+              examples:
+                Follow user:
+                  value:
+                    created_at: 2025-08-02T21:03:32.477767Z
+                    followee_id: 18
+                    follower_id: 1
+  /api/v1/tweet:
+    post:
+      summary: Tweet
+      description: Tweet
+      operationId: tweet
+      parameters:
+      - name: user
+        in: query
+        schema:
+          type: string
+          example: '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  example: It's a tweet
+            example:
+              content: It's a tweet
+      responses:
+        '201':
+          description: Tweet
+          headers:
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+                example: Content-Type
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+                example: GET, POST, OPTIONS
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: '*'
+            Content-Length:
+              schema:
+                type: string
+                example: '41'
+            Date:
+              schema:
+                type: string
+                example: Sat, 02 Aug 2025 19:34:39 GMT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Tweet created successfully
+              examples:
+                Tweet:
+                  value:
+                    message: Tweet created successfully
+  /api/v1/new_user:
+    post:
+      summary: Create User
+      description: Create User
+      operationId: createUser
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: jzethar
+            example:
+              username: jzethar
+      responses:
+        '201':
+          description: Create User
+          headers:
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+                example: Content-Type
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+                example: GET, POST, OPTIONS
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: '*'
+            Content-Length:
+              schema:
+                type: string
+                example: '76'
+            Date:
+              schema:
+                type: string
+                example: Sat, 02 Aug 2025 19:27:28 GMT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created_at:
+                    type: string
+                    example: 2025-08-02T16:27:28.65460088-03:00
+                  id:
+                    type: number
+                    example: 6
+                  username:
+                    type: string
+                    example: jzethar
+              examples:
+                Create User:
+                  value:
+                    created_at: 2025-08-02T16:27:28.65460088-03:00
+                    id: 6
+                    username: jzethar
+  /api/v1/followers:
+    get:
+      summary: Followers
+      description: Followers
+      operationId: followers
+      parameters:
+      - name: user
+        in: query
+        schema:
+          type: string
+          example: '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: jz2
+            example:
+              username: jz2
+      responses:
+        '200':
+          description: Followers
+          headers:
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+                example: Content-Type
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+                example: GET, POST, OPTIONS
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: '*'
+            Content-Length:
+              schema:
+                type: string
+                example: '140'
+            Date:
+              schema:
+                type: string
+                example: Sat, 02 Aug 2025 14:55:10 GMT
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    created_at:
+                      type: string
+                      example: 2025-08-01T21:45:29.544478Z
+                    id:
+                      type: number
+                      example: 2
+                    username:
+                      type: string
+                      example: jz2
+                example:
+                - created_at: 2025-08-01T21:45:29.544478Z
+                  id: 2
+                  username: jz2
+                - created_at: 2025-08-02T13:54:41.749044Z
+                  id: 3
+                  username: jz3
+              examples:
+                Followers:
+                  value:
+                  - created_at: 2025-08-01T21:45:29.544478Z
+                    id: 2
+                    username: jz2
+                  - created_at: 2025-08-02T13:54:41.749044Z
+                    id: 3
+                    username: jz3
+  /api/v1/followings:
+    get:
+      summary: Followings
+      description: Followings
+      operationId: followings
+      parameters:
+      - name: user
+        in: query
+        schema:
+          type: string
+          example: '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: jz2
+            example:
+              username: jz2
+      responses:
+        '200':
+          description: Followings
+          headers:
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+                example: Content-Type
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+                example: GET, POST, OPTIONS
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: '*'
+            Content-Length:
+              schema:
+                type: string
+                example: '71'
+            Date:
+              schema:
+                type: string
+                example: Sat, 02 Aug 2025 13:54:14 GMT
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    created_at:
+                      type: string
+                      example: 2025-08-01T18:47:58.874861Z
+                    id:
+                      type: number
+                      example: 2
+                    username:
+                      type: string
+                      example: jz2
+                example:
+                - created_at: 2025-08-01T18:47:58.874861Z
+                  id: 2
+                  username: jz2
+              examples:
+                Followings:
+                  value:
+                  - created_at: 2025-08-01T18:47:58.874861Z
+                    id: 2
+                    username: jz2
+  /api/v1/get_user:
+    get:
+      summary: Get user
+      description: Get user
+      operationId: getUser
+      parameters:
+      - name: user
+        in: query
+        schema:
+          type: string
+          example: '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: jz2
+            example:
+              username: jz2
+      responses:
+        '201':
+          description: Get user
+          headers:
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+                example: Content-Type
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+                example: GET, POST, OPTIONS
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: '*'
+            Content-Length:
+              schema:
+                type: string
+                example: '68'
+            Date:
+              schema:
+                type: string
+                example: Fri, 01 Aug 2025 22:11:09 GMT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  created_at:
+                    type: string
+                    example: 2025-08-01T18:39:59.758703Z
+                  id:
+                    type: number
+                    example: 1
+                  username:
+                    type: string
+                    example: jzethar
+              examples:
+                Get user:
+                  value:
+                    created_at: 2025-08-01T18:39:59.758703Z
+                    id: 1
+                    username: jzethar
+  /api/v1/get_tweet:
+    get:
+      summary: Get Tweet
+      description: Get Tweet
+      operationId: getTweet
+      parameters:
+      - name: tweet
+        in: query
+        schema:
+          type: string
+          example: '1'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: jz2
+            example:
+              username: jz2
+      responses:
+        '200':
+          description: Get Tweet
+          headers:
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+                example: Content-Type
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+                example: GET, POST, OPTIONS
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: '*'
+            Content-Length:
+              schema:
+                type: string
+                example: '88'
+            Date:
+              schema:
+                type: string
+                example: Sat, 02 Aug 2025 00:03:58 GMT
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: string
+                    example: I'm alive
+                  created_at:
+                    type: string
+                    example: 2025-08-01T19:13:27.035136Z
+                  id:
+                    type: number
+                    example: 1
+                  user_id:
+                    type: number
+                    example: 1
+              examples:
+                Get Tweet:
+                  value:
+                    content: I'm alive
+                    created_at: 2025-08-01T19:13:27.035136Z
+                    id: 1
+                    user_id: 1
+  /api/v1/tweets:
+    get:
+      summary: Timeline
+      description: Timeline
+      operationId: timeline
+      parameters:
+      - name: user
+        in: query
+        schema:
+          type: string
+          example: '2'
+      responses:
+        '200':
+          description: Timeline
+          headers:
+            Access-Control-Allow-Headers:
+              schema:
+                type: string
+                example: Content-Type
+            Access-Control-Allow-Methods:
+              schema:
+                type: string
+                example: GET, POST, OPTIONS
+            Access-Control-Allow-Origin:
+              schema:
+                type: string
+                example: '*'
+            Date:
+              schema:
+                type: string
+                example: Sun, 03 Aug 2025 03:20:49 GMT
+            Transfer-Encoding:
+              schema:
+                type: string
+                example: chunked
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    content:
+                      type: string
+                      example: Du hast
+                    created_at:
+                      type: string
+                      example: 2025-08-02T20:34:52.997909Z
+                    id:
+                      type: number
+                      example: 61
+                    user_id:
+                      type: number
+                      example: 1
+                example:
+                - content: Du hast
+                  created_at: 2025-08-02T20:34:52.997909Z
+                  id: 61
+                  user_id: 1
+                - content: Ich will
+                  created_at: 2025-08-02T20:34:48.042218Z
+                  id: 60
+                  user_id: 1
+                - content: Ich been
+                  created_at: 2025-08-02T20:34:44.682026Z
+                  id: 59
+                  user_id: 1
+                - content: Das ist was
+                  created_at: 2025-08-02T20:34:29.563606Z
+                  id: 58
+                  user_id: 1
+                - content: my
+                  created_at: 2025-08-02T20:34:04.087443Z
+                  id: 57
+                  user_id: 1
+                - content: met
+                  created_at: 2025-08-02T20:33:50.959014Z
+                  id: 56
+                  user_id: 1
+                - content: make a tweet
+                  created_at: 2025-08-02T19:42:12.929963Z
+                  id: 54
+                  user_id: 1
+                - content: DO OR DO
+                  created_at: 2025-08-02T19:38:35.920905Z
+                  id: 53
+                  user_id: 1
+                - content: yes
+                  created_at: 2025-08-02T19:38:25.280905Z
+                  id: 50
+                  user_id: 1
+                - content: msg
+                  created_at: 2025-08-02T19:38:11.528383Z
+                  id: 49
+                  user_id: 1
+                - content: what the day is
+                  created_at: 2025-08-02T19:36:37.346839Z
+                  id: 48
+                  user_id: 1
+                - content: I want
+                  created_at: 2025-08-02T19:36:31.762053Z
+                  id: 47
+                  user_id: 1
+                - content: do it
+                  created_at: 2025-08-02T19:36:28.542788Z
+                  id: 46
+                  user_id: 1
+                - content: content
+                  created_at: 2025-08-02T19:36:24.686938Z
+                  id: 45
+                  user_id: 1
+                - content: just
+                  created_at: 2025-08-02T19:36:19.610126Z
+                  id: 44
+                  user_id: 1
+                - content: test
+                  created_at: 2025-08-02T19:35:44.912004Z
+                  id: 43
+                  user_id: 1
+                - content: tick
+                  created_at: 2025-08-02T19:34:56.10767Z
+                  id: 42
+                  user_id: 1
+                - content: test
+                  created_at: 2025-08-02T19:34:25.715137Z
+                  id: 40
+                  user_id: 1
+                - content: main Land
+                  created_at: 2025-08-02T15:52:08.3001Z
+                  id: 34
+                  user_id: 1
+                - content: tired
+                  created_at: 2025-08-02T15:17:13.989664Z
+                  id: 33
+                  user_id: 1
+                - content: made
+                  created_at: 2025-08-02T15:10:30.797314Z
+                  id: 28
+                  user_id: 1
+                - content: I was made for loving
+                  created_at: 2025-08-02T14:56:09.434695Z
+                  id: 21
+                  user_id: 1
+                - content: to be alive
+                  created_at: 2025-08-02T14:04:56.678111Z
+                  id: 18
+                  user_id: 1
+                - content: used to be alive
+                  created_at: 2025-08-02T14:00:20.82821Z
+                  id: 17
+                  user_id: 1
+                - content: used to be alive
+                  created_at: 2025-08-02T13:53:12.285678Z
+                  id: 16
+                  user_id: 1
+                - content: still alive
+                  created_at: 2025-08-01T21:46:19.810179Z
+                  id: 15
+                  user_id: 1
+              examples:
+                Timeline:
+                  value:
+                  - content: Du hast
+                    created_at: 2025-08-02T20:34:52.997909Z
+                    id: 61
+                    user_id: 1
+                  - content: Ich will
+                    created_at: 2025-08-02T20:34:48.042218Z
+                    id: 60
+                    user_id: 1
+                  - content: Ich been
+                    created_at: 2025-08-02T20:34:44.682026Z
+                    id: 59
+                    user_id: 1
+                  - content: Das ist was
+                    created_at: 2025-08-02T20:34:29.563606Z
+                    id: 58
+                    user_id: 1
+                  - content: my
+                    created_at: 2025-08-02T20:34:04.087443Z
+                    id: 57
+                    user_id: 1
+                  - content: met
+                    created_at: 2025-08-02T20:33:50.959014Z
+                    id: 56
+                    user_id: 1
+                  - content: make a tweet
+                    created_at: 2025-08-02T19:42:12.929963Z
+                    id: 54
+                    user_id: 1
+                  - content: DO OR DO
+                    created_at: 2025-08-02T19:38:35.920905Z
+                    id: 53
+                    user_id: 1
+                  - content: yes
+                    created_at: 2025-08-02T19:38:25.280905Z
+                    id: 50
+                    user_id: 1
+                  - content: msg
+                    created_at: 2025-08-02T19:38:11.528383Z
+                    id: 49
+                    user_id: 1
+                  - content: what the day is
+                    created_at: 2025-08-02T19:36:37.346839Z
+                    id: 48
+                    user_id: 1
+                  - content: I want
+                    created_at: 2025-08-02T19:36:31.762053Z
+                    id: 47
+                    user_id: 1
+                  - content: do it
+                    created_at: 2025-08-02T19:36:28.542788Z
+                    id: 46
+                    user_id: 1
+                  - content: content
+                    created_at: 2025-08-02T19:36:24.686938Z
+                    id: 45
+                    user_id: 1
+                  - content: just
+                    created_at: 2025-08-02T19:36:19.610126Z
+                    id: 44
+                    user_id: 1
+                  - content: test
+                    created_at: 2025-08-02T19:35:44.912004Z
+                    id: 43
+                    user_id: 1
+                  - content: tick
+                    created_at: 2025-08-02T19:34:56.10767Z
+                    id: 42
+                    user_id: 1
+                  - content: test
+                    created_at: 2025-08-02T19:34:25.715137Z
+                    id: 40
+                    user_id: 1
+                  - content: main Land
+                    created_at: 2025-08-02T15:52:08.3001Z
+                    id: 34
+                    user_id: 1
+                  - content: tired
+                    created_at: 2025-08-02T15:17:13.989664Z
+                    id: 33
+                    user_id: 1
+                  - content: made
+                    created_at: 2025-08-02T15:10:30.797314Z
+                    id: 28
+                    user_id: 1
+                  - content: I was made for loving
+                    created_at: 2025-08-02T14:56:09.434695Z
+                    id: 21
+                    user_id: 1
+                  - content: to be alive
+                    created_at: 2025-08-02T14:04:56.678111Z
+                    id: 18
+                    user_id: 1
+                  - content: used to be alive
+                    created_at: 2025-08-02T14:00:20.82821Z
+                    id: 17
+                    user_id: 1
+                  - content: used to be alive
+                    created_at: 2025-08-02T13:53:12.285678Z
+                    id: 16
+                    user_id: 1
+                  - content: still alive
+                    created_at: 2025-08-01T21:46:19.810179Z
+                    id: 15
+                    user_id: 1
+tags: []
+

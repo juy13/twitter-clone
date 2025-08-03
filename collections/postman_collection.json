@@ -1,0 +1,803 @@
+{
+	"info": {
+		"_postman_id": "af9d048a-cdc1-495a-891e-fef7699a4a1d",
+		"name": "Twitter clone",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "18000954"
+	},
+	"item": [
+		{
+			"name": "Follow user",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{local}}/api/v1/follow_user?user=1&followee=18",
+					"host": [
+						"{{local}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"follow_user"
+					],
+					"query": [
+						{
+							"key": "user",
+							"value": "1"
+						},
+						{
+							"key": "followee",
+							"value": "18"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Follow user",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}/api/v1/follow_user?user=1&followee=18",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"follow_user"
+							],
+							"query": [
+								{
+									"key": "user",
+									"value": "1"
+								},
+								{
+									"key": "followee",
+									"value": "18"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "GET, POST, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 02 Aug 2025 21:03:32 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "78"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"follower_id\": 1,\n    \"followee_id\": 18,\n    \"created_at\": \"2025-08-02T21:03:32.477767Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Tweet",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"content\": \"It's a tweet\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local}}/api/v1/tweet?user=1",
+					"host": [
+						"{{local}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"tweet"
+					],
+					"query": [
+						{
+							"key": "user",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Tweet",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"It's a tweet\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/v1/tweet?user=1",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tweet"
+							],
+							"query": [
+								{
+									"key": "user",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "GET, POST, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 02 Aug 2025 19:34:39 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "41"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"message\": \"Tweet created successfully\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Create User",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"jzethar\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local}}/api/v1/new_user",
+					"host": [
+						"{{local}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"new_user"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Create User",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"jzethar\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/v1/new_user",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"new_user"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "GET, POST, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 02 Aug 2025 19:27:28 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "76"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": 6,\n    \"username\": \"jzethar\",\n    \"created_at\": \"2025-08-02T16:27:28.65460088-03:00\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Followers",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"jz2\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local}}/api/v1/followers?user=1",
+					"host": [
+						"{{local}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"followers"
+					],
+					"query": [
+						{
+							"key": "user",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Followers",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"jz2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/v1/followers?user=1",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"followers"
+							],
+							"query": [
+								{
+									"key": "user",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "GET, POST, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 02 Aug 2025 14:55:10 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "140"
+						}
+					],
+					"cookie": [],
+					"body": "[\n    {\n        \"id\": 2,\n        \"username\": \"jz2\",\n        \"created_at\": \"2025-08-01T21:45:29.544478Z\"\n    },\n    {\n        \"id\": 3,\n        \"username\": \"jz3\",\n        \"created_at\": \"2025-08-02T13:54:41.749044Z\"\n    }\n]"
+				}
+			]
+		},
+		{
+			"name": "Followings",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"jz2\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local}}/api/v1/followings?user=1",
+					"host": [
+						"{{local}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"followings"
+					],
+					"query": [
+						{
+							"key": "user",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Followings",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"jz2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/v1/followings?user=1",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"followings"
+							],
+							"query": [
+								{
+									"key": "user",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "GET, POST, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 02 Aug 2025 13:54:14 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "71"
+						}
+					],
+					"cookie": [],
+					"body": "[\n    {\n        \"id\": 2,\n        \"username\": \"jz2\",\n        \"created_at\": \"2025-08-01T18:47:58.874861Z\"\n    }\n]"
+				}
+			]
+		},
+		{
+			"name": "Get user",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"jz2\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local}}/api/v1/get_user?user=1",
+					"host": [
+						"{{local}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"get_user"
+					],
+					"query": [
+						{
+							"key": "user",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Get user",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"jz2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/v1/get_user?user=1",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"get_user"
+							],
+							"query": [
+								{
+									"key": "user",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "GET, POST, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 01 Aug 2025 22:11:09 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "68"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": 1,\n    \"username\": \"jzethar\",\n    \"created_at\": \"2025-08-01T18:39:59.758703Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get Tweet",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"jz2\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{local}}/api/v1/get_tweet?tweet=1",
+					"host": [
+						"{{local}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"get_tweet"
+					],
+					"query": [
+						{
+							"key": "tweet",
+							"value": "1"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Get Tweet",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"jz2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{local}}/api/v1/get_tweet?tweet=1",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"get_tweet"
+							],
+							"query": [
+								{
+									"key": "tweet",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "GET, POST, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sat, 02 Aug 2025 00:03:58 GMT"
+						},
+						{
+							"key": "Content-Length",
+							"value": "88"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": 1,\n    \"user_id\": 1,\n    \"content\": \"I'm alive\",\n    \"created_at\": \"2025-08-01T19:13:27.035136Z\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Timeline",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{local}}/api/v1/tweets?user=2",
+					"host": [
+						"{{local}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"tweets"
+					],
+					"query": [
+						{
+							"key": "user",
+							"value": "2"
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Timeline",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local}}/api/v1/tweets?user=1",
+							"host": [
+								"{{local}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"tweets"
+							],
+							"query": [
+								{
+									"key": "user",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Headers",
+							"value": "Content-Type"
+						},
+						{
+							"key": "Access-Control-Allow-Methods",
+							"value": "GET, POST, OPTIONS"
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Date",
+							"value": "Sun, 03 Aug 2025 03:20:49 GMT"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "[\n    {\n        \"id\": 61,\n        \"user_id\": 1,\n        \"content\": \"Du hast\",\n        \"created_at\": \"2025-08-02T20:34:52.997909Z\"\n    },\n    {\n        \"id\": 60,\n        \"user_id\": 1,\n        \"content\": \"Ich will\",\n        \"created_at\": \"2025-08-02T20:34:48.042218Z\"\n    },\n    {\n        \"id\": 59,\n        \"user_id\": 1,\n        \"content\": \"Ich been\",\n        \"created_at\": \"2025-08-02T20:34:44.682026Z\"\n    },\n    {\n        \"id\": 58,\n        \"user_id\": 1,\n        \"content\": \"Das ist was\",\n        \"created_at\": \"2025-08-02T20:34:29.563606Z\"\n    },\n    {\n        \"id\": 57,\n        \"user_id\": 1,\n        \"content\": \"my\",\n        \"created_at\": \"2025-08-02T20:34:04.087443Z\"\n    },\n    {\n        \"id\": 56,\n        \"user_id\": 1,\n        \"content\": \"met\",\n        \"created_at\": \"2025-08-02T20:33:50.959014Z\"\n    },\n    {\n        \"id\": 54,\n        \"user_id\": 1,\n        \"content\": \"make a tweet\",\n        \"created_at\": \"2025-08-02T19:42:12.929963Z\"\n    },\n    {\n        \"id\": 53,\n        \"user_id\": 1,\n        \"content\": \"DO OR DO\",\n        \"created_at\": \"2025-08-02T19:38:35.920905Z\"\n    },\n    {\n        \"id\": 50,\n        \"user_id\": 1,\n        \"content\": \"yes\",\n        \"created_at\": \"2025-08-02T19:38:25.280905Z\"\n    },\n    {\n        \"id\": 49,\n        \"user_id\": 1,\n        \"content\": \"msg\",\n        \"created_at\": \"2025-08-02T19:38:11.528383Z\"\n    },\n    {\n        \"id\": 48,\n        \"user_id\": 1,\n        \"content\": \"what the day is\",\n        \"created_at\": \"2025-08-02T19:36:37.346839Z\"\n    },\n    {\n        \"id\": 47,\n        \"user_id\": 1,\n        \"content\": \"I want\",\n        \"created_at\": \"2025-08-02T19:36:31.762053Z\"\n    },\n    {\n        \"id\": 46,\n        \"user_id\": 1,\n        \"content\": \"do it\",\n        \"created_at\": \"2025-08-02T19:36:28.542788Z\"\n    },\n    {\n        \"id\": 45,\n        \"user_id\": 1,\n        \"content\": \"content\",\n        \"created_at\": \"2025-08-02T19:36:24.686938Z\"\n    },\n    {\n        \"id\": 44,\n        \"user_id\": 1,\n        \"content\": \"just\",\n        \"created_at\": \"2025-08-02T19:36:19.610126Z\"\n    },\n    {\n        \"id\": 43,\n        \"user_id\": 1,\n        \"content\": \"test\",\n        \"created_at\": \"2025-08-02T19:35:44.912004Z\"\n    },\n    {\n        \"id\": 42,\n        \"user_id\": 1,\n        \"content\": \"tick\",\n        \"created_at\": \"2025-08-02T19:34:56.10767Z\"\n    },\n    {\n        \"id\": 40,\n        \"user_id\": 1,\n        \"content\": \"test\",\n        \"created_at\": \"2025-08-02T19:34:25.715137Z\"\n    },\n    {\n        \"id\": 34,\n        \"user_id\": 1,\n        \"content\": \"main Land\",\n        \"created_at\": \"2025-08-02T15:52:08.3001Z\"\n    },\n    {\n        \"id\": 33,\n        \"user_id\": 1,\n        \"content\": \"tired\",\n        \"created_at\": \"2025-08-02T15:17:13.989664Z\"\n    },\n    {\n        \"id\": 28,\n        \"user_id\": 1,\n        \"content\": \"made\",\n        \"created_at\": \"2025-08-02T15:10:30.797314Z\"\n    },\n    {\n        \"id\": 21,\n        \"user_id\": 1,\n        \"content\": \"I was made for loving\",\n        \"created_at\": \"2025-08-02T14:56:09.434695Z\"\n    },\n    {\n        \"id\": 18,\n        \"user_id\": 1,\n        \"content\": \"to be alive\",\n        \"created_at\": \"2025-08-02T14:04:56.678111Z\"\n    },\n    {\n        \"id\": 17,\n        \"user_id\": 1,\n        \"content\": \"used to be alive\",\n        \"created_at\": \"2025-08-02T14:00:20.82821Z\"\n    },\n    {\n        \"id\": 16,\n        \"user_id\": 1,\n        \"content\": \"used to be alive\",\n        \"created_at\": \"2025-08-02T13:53:12.285678Z\"\n    },\n    {\n        \"id\": 15,\n        \"user_id\": 1,\n        \"content\": \"still alive\",\n        \"created_at\": \"2025-08-01T21:46:19.810179Z\"\n    }\n]"
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "local",
+			"value": "localhost:15001",
+			"type": "string"
+		}
+	]
+}
