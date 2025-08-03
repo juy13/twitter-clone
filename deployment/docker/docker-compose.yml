@@ -1,0 +1,113 @@
+version: '3.8'
+
+x-logging: &logging
+  logging:
+    driver: json-file
+    options:
+      max-size: 5m
+      max-file: "2"
+
+volumes:
+  config-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /opt/twitter_clone/configs
+      o: bind
+  migrations-data:
+    driver: local
+    driver_opts:
+      type: none
+      device: /var/data/migrations
+      o: bind
+
+services:
+  migrations:
+    init: true
+    build:
+      context: .
+      dockerfile: migrations.Dockerfile
+    networks:
+      - twitter-clone-net
+    environment:
+      DATABASE_URL: "postgresql://user:password@postgres_db:5432/twitterdb"
+    volumes:
+      - migrations-data:/app/data/migrations
+    command: [ "sh", "-c", "goose -dir /app/data/migrations postgres \"$${DATABASE_URL}\" up" ]
+    restart: "no"
+
+  api-server:
+    image: api-servre
+    build:
+      context: ../../
+      dockerfile: deployment/docker/Dockerfile
+      target: twitter-clone-api
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 300M
+    networks:
+      - twitter-clone-net
+    command: ["./api", "--config", "/app/config.yml.docker.test"]
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+    ports:
+      - 127.0.0.1:8080:9090
+    <<: *logging
+    volumes:
+      - config-data:/app
+
+  worker:
+    init: true
+    image: worker
+    build:
+      context: ../../
+      dockerfile: deployment/docker/Dockerfile
+      target: twitter-clone-worker
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 300M
+    networks:
+      - twitter-clone-net
+    command: ["./worker", "--config", "/app/config.yml.docker.test"]
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+    <<: *logging
+    volumes:
+      - config-data:/app
+
+  ws-server:
+    init: true
+    image: ws-server
+    build:
+      context: ../../
+      dockerfile: deployment/docker/Dockerfile
+      target: twitter-clone-ws_socket
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 300M
+    networks:
+      - twitter-clone-net
+    command: ["./ws_server", "--config", "/app/config.yml.docker.test"]
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+    ports:
+      - 127.0.0.1:8081:9090
+    <<: *logging
+    volumes:
+      - config-data:/app
+    
+networks:
+  twitter-clone-net: 
+    external: true
