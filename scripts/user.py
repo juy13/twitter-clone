@@ -4,8 +4,8 @@ import asyncio
 import websockets
 import requests
 
-API_URL = "http://localhost:15001/api/v1"
-WS_URL = "ws://127.0.0.1:8080/ws?user_id={user_id}"
+API_URL = "http://localhost:8080/api/v1"
+WS_URL = "ws://127.0.0.1:8083/ws?user_id={user_id}"
 
 def create_user(username):
     payload = {"username": username}

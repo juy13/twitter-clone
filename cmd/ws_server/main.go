@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"twitter-clone/internal/app/api"
 	"twitter-clone/internal/config"
+	"twitter-clone/internal/server/metrics"
 	wsserver "twitter-clone/internal/server/ws_server"
 
 	"github.com/rs/zerolog/log"
@@ -70,12 +71,21 @@ func runWebSocketServer(cCtx *cli.Context) error {
 	cache := redis_cache.NewRedisCache(configYaml)
 	apiService := api.NewAPIService(configYaml.WSServerAPIPath())
 	websocketServer := wsserver.NewWebSocketServer(cache, configYaml, apiService)
+	debugServer := metrics.NewMetricsServer(configYaml)
 
 	go websocketServer.HandleTweets(signalCtx)
 
 	go func() {
 		log.Info().Msgf("Starting web socket server: %s \n", websocketServer.Info())
 		if err := websocketServer.Start(); err != nil && err != http.ErrServerClosed {
+			log.Fatal().Msgf("Common server failed: %v", err)
+		}
+
+	}()
+
+	go func() {
+		log.Info().Msgf("Starting data server: %s \n", debugServer.Info())
+		if err := debugServer.Start(); err != nil && err != http.ErrServerClosed {
 			log.Fatal().Msgf("Common server failed: %v", err)
 		}
 

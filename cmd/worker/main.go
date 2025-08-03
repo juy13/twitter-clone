@@ -3,10 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"twitter-clone/internal/config"
+	"twitter-clone/internal/server/metrics"
 	"twitter-clone/internal/server/worker"
 
 	"github.com/rs/zerolog/log"
@@ -71,9 +73,18 @@ func runWorker(cCtx *cli.Context) error {
 	cache := redis_cache.NewRedisCache(configYaml)
 
 	worker := worker.NewWorker(database, cache)
+	debugServer := metrics.NewMetricsServer(configYaml)
 
 	go func() {
 		_ = worker.Start(signalCtx) // lint issue
+	}()
+
+	go func() {
+		log.Info().Msgf("Starting data server: %s \n", debugServer.Info())
+		if err := debugServer.Start(); err != nil && err != http.ErrServerClosed {
+			log.Fatal().Msgf("Common server failed: %v", err)
+		}
+
 	}()
 
 	<-signalCtx.Done()

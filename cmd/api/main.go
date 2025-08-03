@@ -17,6 +17,8 @@ import (
 
 	postgres_db "twitter-clone/internal/database/postgres"
 
+	"twitter-clone/internal/server/metrics"
+
 	"github.com/rs/zerolog/log"
 	"github.com/urfave/cli/v2"
 )
@@ -73,6 +75,7 @@ func runServer(cCtx *cli.Context) error {
 	cache := redis_cache.NewRedisCache(configYaml)
 	twitterService := app.NewTweeterService(database, cache)
 	server := server.NewServerV1(twitterService, configYaml)
+	debugServer := metrics.NewMetricsServer(configYaml)
 
 	go func() {
 		log.Info().Msgf("Starting data server: %s \n", server.Info())
@@ -82,9 +85,20 @@ func runServer(cCtx *cli.Context) error {
 
 	}()
 
+	go func() {
+		log.Info().Msgf("Starting data server: %s \n", debugServer.Info())
+		if err := debugServer.Start(); err != nil && err != http.ErrServerClosed {
+			log.Fatal().Msgf("Common server failed: %v", err)
+		}
+
+	}()
+
 	<-signalCtx.Done()
 	log.Info().Msg("Shut down data server")
 	if err = server.Stop(context.TODO()); err != nil {
+		log.Fatal().Msg("Can't terminate data server")
+	}
+	if err = debugServer.Stop(context.TODO()); err != nil {
 		log.Fatal().Msg("Can't terminate data server")
 	}
 
