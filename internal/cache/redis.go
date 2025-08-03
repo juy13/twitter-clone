@@ -71,7 +71,7 @@ func (c *RedisCache) PushToUserFeed(ctx context.Context, userID, tweetID int64) 
 	pipe := c.client.TxPipeline()
 	feedKey := fmt.Sprintf("timeline:%d", userID)
 	pipe.LPush(ctx, feedKey, tweetID)
-	pipe.LTrim(ctx, feedKey, 0, int64(c.maxTweetsTimelineItems))
+	pipe.LTrim(ctx, feedKey, 0, int64(c.maxTweetsTimelineItems)-1)
 	pipe.Expire(ctx, feedKey, c.tweetTimelineExpireTime*time.Minute)
 
 	///// did I lost it? yep I did
@@ -107,7 +107,7 @@ func (c *RedisCache) GetUserTimeline(ctx context.Context, userID int64, limit in
 func (c *RedisCache) CheckUserTimelineExists(ctx context.Context, userID int64) (bool, error) {
 	var err error
 	var exists int64
-	timelineKey := fmt.Sprintf("timeline::%v", userID)
+	timelineKey := fmt.Sprintf("timeline:%v", userID)
 	if exists, err = c.client.Exists(ctx, timelineKey).Result(); err != nil {
 		return false, err
 	}

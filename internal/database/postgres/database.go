@@ -125,11 +125,10 @@ func (p *PostgresDB) CreateUser(ctx context.Context, userData twitter.User) (int
 	return userID, nil
 }
 
-// /////////////////////////////////////////
-//
+///////////////////////////////////////////
 //	Follow part
-//
-// /////////////////////////////////////////
+///////////////////////////////////////////
+
 func (p *PostgresDB) FollowUser(ctx context.Context, follow twitter.Follow) error {
 	query := `
         INSERT INTO follows (follower_id, followed_id)
