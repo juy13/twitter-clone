@@ -176,7 +176,7 @@ func (c *RedisCache) SubscribeToTweetsChannel(ctx context.Context, channel strin
 		for {
 			select {
 			case <-ctx.Done():
-				pubsub.Close()
+				_ = pubsub.Close() // lint issue
 				close(chanRet)
 				return
 			default:
