@@ -72,7 +72,9 @@ func runWorker(cCtx *cli.Context) error {
 
 	worker := worker.NewWorker(database, cache)
 
-	go worker.Start(signalCtx)
+	go func() {
+		_ = worker.Start(signalCtx) // lint issue
+	}()
 
 	<-signalCtx.Done()
 	log.Info().Msg("Shut down the worker")

@@ -259,8 +259,7 @@ func (s *ServerV1) returnTweets(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *ServerV1) getTweetByUser(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	s.tweeterService.GetUsersTweets(ctx, 0)
+	panic("implement me")
 }
 
 func (s *ServerV1) getTweet(w http.ResponseWriter, r *http.Request) {

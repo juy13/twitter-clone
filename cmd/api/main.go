@@ -88,8 +88,5 @@ func runServer(cCtx *cli.Context) error {
 		log.Fatal().Msg("Can't terminate data server")
 	}
 
-	// select {
-	// case
-	// }
 	return nil
 }

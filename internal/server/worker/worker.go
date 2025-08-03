@@ -48,7 +48,9 @@ func (w *Worker) Start(ctx context.Context) error {
 				return fmt.Errorf("failed to get tweet %d: %w", tweetID, err)
 			}
 
-			go w.ProcessTweet(ctx, tweet)
+			go func() {
+				_ = w.ProcessTweet(ctx, tweet)
+			}()
 		}
 	}
 }
