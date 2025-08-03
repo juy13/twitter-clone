@@ -1,5 +1,9 @@
 # Twitter Clone
 
+- More about deploy: [deploy](deployment/docker/Readme.md)
+- More about architecture: [architecture](docs/Architecture.md)
+- More about code: [code](docs/Code.md)
+
 ## Idea
 
 The goal is to clone Twitter's core functionality:
