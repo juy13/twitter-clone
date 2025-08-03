@@ -14,6 +14,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+const TWEET_CONTENT_MAX_LENGTH = 280
+
 type ServerV1 struct {
 	tweeterService twitter.TwitterServiceI
 	server         *http.Server
@@ -197,6 +199,16 @@ func (s *ServerV1) newTweet(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewDecoder(r.Body).Decode(&tweet); err != nil {
 		result := map[string]string{
 			"error": "Invalid request body",
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if len(tweet.Content) > TWEET_CONTENT_MAX_LENGTH {
+		result := map[string]string{
+			"error": "Content too long",
 		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)

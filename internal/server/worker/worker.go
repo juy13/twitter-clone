@@ -5,18 +5,15 @@ import (
 	"fmt"
 	"strconv"
 	"twitter-clone/internal/domain/cache"
-	"twitter-clone/internal/domain/database"
 	"twitter-clone/internal/domain/twitter"
 )
 
 type Worker struct {
 	cache cache.Cache
-	db    database.DatabaseI
 }
 
-func NewWorker(db database.DatabaseI, cache cache.Cache) *Worker {
+func NewWorker(cache cache.Cache) *Worker {
 	return &Worker{
-		db:    db,
 		cache: cache,
 	}
 }

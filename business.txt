@@ -1,0 +1,6 @@
+1. There is no auth mechanism right now.
+2. Users can follow as much as they want. In real twitter there are some restrictions.
+3. The content of the tweet has a max length.
+4. The content if the tweet is only a text. Images/videos can be added, but there is a need in CDN for that.
+5. As there is no auth, the metric that user is active is its connection to the websocket server.
+6. Go used as a programming language.
