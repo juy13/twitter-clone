@@ -19,6 +19,9 @@ type YamlConfig struct {
 
 	// wss
 	WSS WSSConfig `yaml:"wss,omitempty"`
+
+	// metrics
+	MetricsServer MetricsConfig `yaml:"metrics,omitempty"`
 }
 
 type API struct {
@@ -52,6 +55,11 @@ type WSSConfig struct {
 	API  string `yaml:"api"`
 }
 
+type MetricsConfig struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
+}
+
 func NewYamlConfig(configFilePath string) (*YamlConfig, error) {
 	var (
 		err  error
@@ -76,11 +84,10 @@ func NewYamlConfig(configFilePath string) (*YamlConfig, error) {
 	return dc, nil
 }
 
-// /////////////////////////////////
-//
+///////////////////////////////////
 //	API
-//
-// /////////////////////////////////
+///////////////////////////////////
+
 func (c YamlConfig) Port() int {
 	return c.API.Port
 }
@@ -156,4 +163,15 @@ func (c *YamlConfig) WSServerPort() int {
 }
 func (c *YamlConfig) WSServerAPIPath() string {
 	return c.WSS.API
+}
+
+///////////////////////////////////
+//	Metrics Config
+///////////////////////////////////
+
+func (c *YamlConfig) MetricsServerHost() string {
+	return c.MetricsServer.Host
+}
+func (c *YamlConfig) MetricsServerPort() int {
+	return c.MetricsServer.Port
 }

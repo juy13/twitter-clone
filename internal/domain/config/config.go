@@ -4,6 +4,7 @@ type Config interface {
 	APIConfig
 	DatabaseConfig
 	CacheConfig
+	MetricsConfig
 }
 
 type APIConfig interface {
@@ -35,4 +36,9 @@ type WSServerConfig interface {
 	WSServerHost() string
 	WSServerPort() int
 	WSServerAPIPath() string
+}
+
+type MetricsConfig interface {
+	MetricsServerHost() string
+	MetricsServerPort() int
 }

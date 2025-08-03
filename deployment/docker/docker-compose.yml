@@ -56,6 +56,7 @@ services:
         condition: service_completed_successfully
     ports:
       - 127.0.0.1:8080:9090
+      - 127.0.0.1:8081:9091 # metrics port
     <<: *logging
     volumes:
       - config-data:/app
@@ -80,6 +81,8 @@ services:
       migrations:
         condition: service_completed_successfully
     <<: *logging
+    ports:
+      - 127.0.0.1:8082:9091 # metrics port
     volumes:
       - config-data:/app
 
@@ -103,7 +106,8 @@ services:
       migrations:
         condition: service_completed_successfully
     ports:
-      - 127.0.0.1:8081:9090
+      - 127.0.0.1:8083:9090
+      - 127.0.0.1:8084:9091 # metrics port
     <<: *logging
     volumes:
       - config-data:/app
